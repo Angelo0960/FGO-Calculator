@@ -1,4 +1,6 @@
+import Forms from "./components/form.jsx";
 import Header from "./components/header.jsx";
+import Tabs from "./components/Tab.jsx";
 
 function App() {
   
@@ -7,6 +9,8 @@ function App() {
     <>
       
       <Header name = "Angelo"/>
+      <Tabs />
+      
     </>
   )
 }
