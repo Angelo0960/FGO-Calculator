@@ -33,7 +33,7 @@ const Forms = (props) => {
               
               
             </form>
-            <List listOfNames={listOfNames}/>
+            <List listOfNames={listOfNames   }/>
       </div>
         
       </>
