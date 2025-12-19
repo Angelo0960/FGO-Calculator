@@ -178,19 +178,9 @@ const ServantSelector = ({ selectedServant, onServantChange }) => {
 
       {/* Footer */}
       <div className="px-4 sm:px-6 py-3 sm:py-4 bg-blue-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-[8px] sm:text-[10px] font-bold">
-        <div className="flex items-center gap-1 sm:gap-2 text-slate-400">
-          <Icon name="Database" size={10} sm:size={12} />
-          <span className="hidden sm:inline">DATA SOURCE: </span>
-          <span className="sm:hidden">SOURCE: </span>
-          <span className="text-blue-500">ATLAS ACADEMY</span>
-        </div>
+        
         <div className="flex gap-2 sm:gap-4">
-          <button className="text-slate-400 hover:text-blue-500 transition-colors uppercase tracking-tight sm:tracking-widest">
-            Guide
-          </button>
-          <button className="text-slate-400 hover:text-blue-500 transition-colors uppercase tracking-tight sm:tracking-widest">
-            API Docs
-          </button>
+          
         </div>
       </div>
     </div>

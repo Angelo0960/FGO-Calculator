@@ -160,44 +160,21 @@ const ServantCalculator = () => {
     }
   };
 
-  // Calculate material requirements - MODIFIED to preserve current values
+  // Calculate material requirements
   const calculateRequirements = () => {
     if (!selectedServantData) {
       return [];
     }
 
     const materialsList = [];
-    
-    // Get current values from existing materials to preserve them
-    const currentMaterialValues = {};
-    materials.forEach(mat => {
-      if (mat.id && mat.current !== undefined) {
-        currentMaterialValues[mat.id] = mat.current;
-      }
-    });
 
     const levelDifference = targetLevel - currentLevel;
     const ascensionDifference = targetAscension - currentAscension;
     
     if (levelDifference <= 0 && ascensionDifference <= 0 && 
         skills.every(skill => skill.target - skill.current <= 0)) {
-      return materials; // Return existing materials if nothing changed
+      return [];
     }
-
-    // Helper function to add material while preserving current value
-    const addMaterial = (id, name, rarity, icon, iconAlt, required) => {
-      const currentValue = currentMaterialValues[id] || 0;
-      materialsList.push({
-        id: id,
-        name: name,
-        rarity: rarity,
-        icon: icon,
-        iconAlt: iconAlt,
-        required: required,
-        current: currentValue, // Use preserved current value
-        deficit: Math.max(0, required - currentValue)
-      });
-    };
 
     // 1. QP requirements
     const qpRequired = calculateQPRequirements();
@@ -209,25 +186,31 @@ const ServantCalculator = () => {
     };
     
     if (qpMaterial && advancedOptions.includeQP && qpRequired > 0) {
-      addMaterial('qp', qpMaterial.name, 'Currency', qpMaterial.icon, 
-                  qpMaterial.detail || 'In-game currency', qpRequired);
+      materialsList.push({
+        id: 'qp',
+        name: qpMaterial.name,
+        rarity: 'Currency',
+        icon: qpMaterial.icon,
+        iconAlt: qpMaterial.detail || 'In-game currency',
+        required: qpRequired,
+        current: 0,
+        deficit: qpRequired
+      });
     }
 
     // 2. Ember requirements
     const emberRequirements = calculateEmberRequirements();
     if (emberRequirements.length > 0) {
       emberRequirements.forEach((ember) => {
-        const emberId = `ember-${ember.type.toLowerCase()}`;
-        const currentValue = currentMaterialValues[emberId] || 0;
         materialsList.push({
-          id: emberId,
+          id: `ember-${ember.type.toLowerCase()}`,
           name: ember.name,
           rarity: ember.type,
           icon: ember.icon,
           iconAlt: ember.iconAlt,
           required: ember.required,
-          current: currentValue,
-          deficit: Math.max(0, ember.required - currentValue)
+          current: 0,
+          deficit: ember.required
         });
       });
     }
@@ -236,17 +219,15 @@ const ServantCalculator = () => {
     const ascensionMaterials = calculateAscensionMaterials();
     if (ascensionMaterials.length > 0) {
       ascensionMaterials.forEach((material) => {
-        const ascensionId = `ascension-${material.id}`;
-        const currentValue = currentMaterialValues[ascensionId] || 0;
         materialsList.push({
-          id: ascensionId,
+          id: `ascension-${material.id}`,
           name: material.name,
           rarity: material.rarity,
           icon: material.icon,
           iconAlt: material.iconAlt,
           required: material.required,
-          current: currentValue,
-          deficit: Math.max(0, material.required - currentValue)
+          current: 0,
+          deficit: material.required
         });
       });
     }
@@ -255,17 +236,15 @@ const ServantCalculator = () => {
     const skillMaterials = calculateSkillMaterials();
     if (skillMaterials.length > 0) {
       skillMaterials.forEach((material) => {
-        const skillId = `skill-${material.id}`;
-        const currentValue = currentMaterialValues[skillId] || 0;
         materialsList.push({
-          id: skillId,
+          id: `skill-${material.id}`,
           name: material.name,
           rarity: material.rarity,
           icon: material.icon,
           iconAlt: material.iconAlt,
           required: material.required,
-          current: currentValue,
-          deficit: Math.max(0, material.required - currentValue)
+          current: 0,
+          deficit: material.required
         });
       });
     }
@@ -660,7 +639,7 @@ const ServantCalculator = () => {
     );
   };
 
-  // Inventory handler functions - MODIFIED to update all materials when loading
+  // Inventory handler functions
   const handleSaveInventory = (inventoryData) => {
     try {
       localStorage.setItem('fgo-inventory', JSON.stringify(inventoryData));
@@ -677,7 +656,6 @@ const ServantCalculator = () => {
       if (savedInventory) {
         const inventoryData = JSON.parse(savedInventory);
         
-        // Update materials state with saved values
         setMaterials(prevMaterials => 
           prevMaterials.map(material => {
             const savedQuantity = inventoryData[material.id];
@@ -825,20 +803,7 @@ const ServantCalculator = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={toggleAutoCalculate}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    autoCalculate 
-                      ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  <Icon 
-                    name={autoCalculate ? "Zap" : "ZapOff"} 
-                    size={16} 
-                  />
-                  <span>Auto-calc: {autoCalculate ? 'ON' : 'OFF'}</span>
-                </button>
+                
               </div>
             </div>
             
@@ -928,10 +893,7 @@ const ServantCalculator = () => {
                   errors={errors}
                 />
 
-                <AdvancedOptions
-                  options={advancedOptions}
-                  onOptionsChange={handleAdvancedOptionsChange}
-                />
+               
 
                 <div className="flex gap-3">
                   {!autoCalculate && (
@@ -947,25 +909,10 @@ const ServantCalculator = () => {
                       {loadingMaterials || loadingServants ? 'Loading...' : 'Calculate'}
                     </Button>
                   )}
-                  <Button
-                    variant="outline"
-                    iconName="RotateCcw"
-                    onClick={handleReset}
-                    aria-label="Reset all fields"
-                  />
+               
                 </div>
                 
-                {autoCalculate && (
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="flex items-center gap-2 text-blue-700">
-                      <Icon name="Zap" size={16} />
-                      <span className="text-sm font-medium">Auto-calculation is enabled</span>
-                    </div>
-                    <p className="text-xs text-blue-600 mt-1">
-                      Materials are calculated automatically as you change settings
-                    </p>
-                  </div>
-                )}
+              
               </div>
 
               <div className="lg:col-span-2">
@@ -1013,46 +960,7 @@ const ServantCalculator = () => {
             </div>
           )}
 
-          <div className="mt-8 bg-card rounded-lg border border-border p-6">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Icon name="Info" size={20} color="var(--color-primary)" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground mb-2">Calculation Details</h3>
-                <div className="space-y-3 text-sm text-muted-foreground">
-                  <div>
-                    <p className="font-medium">Current Configuration:</p>
-                    <p>Level: {currentLevel} → {targetLevel} ({targetLevel - currentLevel} levels)</p>
-                    <p>Ascension: {currentAscension} → {targetAscension} ({targetAscension - currentAscension} ascensions)</p>
-                    {selectedServantData ? (
-                      <p>Servant: {selectedServantData.name} ({selectedServantData.className?.toUpperCase()}) ★{selectedServantData.rarity}</p>
-                    ) : (
-                      <p>Servant: None selected</p>
-                    )}
-                  </div>
-                  {materials.length > 0 && selectedServantData && (
-                    <div>
-                      <p className="font-medium">Materials Required:</p>
-                      <p>• QP: {getDisplayQP().toLocaleString()} QP</p>
-                      <p>• Embers: {materials.filter(m => m.name.includes('Ember')).length} types</p>
-                      <p>• Ascension materials: {materials.filter(m => m.id.toString().startsWith('ascension')).length} types</p>
-                      <p>• Skill materials: {materials.filter(m => m.id.toString().startsWith('skill')).length} types</p>
-                      <p>• Total materials: {materials.length}</p>
-                    </div>
-                  )}
-                  {errors && Object.keys(errors).length > 0 && (
-                    <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <p className="font-medium text-red-700 mb-1">Validation Errors:</p>
-                      {Object.entries(errors).map(([key, error]) => (
-                        <p key={key} className="text-red-600 text-xs">• {error}</p>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+          
         </div>
       </main>
     </div>

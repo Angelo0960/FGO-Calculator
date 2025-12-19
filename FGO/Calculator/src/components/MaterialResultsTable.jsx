@@ -137,25 +137,11 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
           <div>
             <h2 className="text-xl font-bold text-slate-900">Material Requirements</h2>
             <div className="flex items-center gap-3 mt-1">
-              <span className="text-sm text-slate-600">
-                {mergedMaterials.filter(m => m.deficit > 0).length} materials needed
-              </span>
-              {mergedMaterials.length < materials.length && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs border border-blue-200">
-                  <Icon name="Merge" size={12} />
-                  <span>Merged {materials.length - mergedMaterials.length} duplicates</span>
-                </span>
-              )}
+              
+            
             </div>
           </div>
-          <Button 
-            variant="outline" 
-            iconName="Download" 
-            onClick={onExport}
-            className="border-blue-300 text-blue-600 hover:bg-blue-50"
-          >
-            Export
-          </Button>
+          
         </div>
       </div>
 
@@ -164,11 +150,10 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
         <div className="min-w-full">
           {/* Table Header */}
           <div className="grid grid-cols-12 bg-slate-50 border-b border-slate-200">
-            <div className="col-span-5 p-4 text-sm font-semibold text-slate-900">Material</div>
-            <div className="col-span-2 p-4 text-sm font-semibold text-slate-900 text-center">Required</div>
-            <div className="col-span-2 p-4 text-sm font-semibold text-slate-900 text-center">Current</div>
-            <div className="col-span-2 p-4 text-sm font-semibold text-slate-900 text-center">Deficit</div>
-            <div className="col-span-1 p-4"></div>
+            <div className="col-span-5 p-4 text-lg font-semibold text-slate-900">Material</div>
+            <div className="col-span-2 p-4 text-lg font-semibold text-slate-900 text-center">Required</div>
+            <div className="col-span-2 p-4 text-lg font-semibold text-slate-900 text-center">Current</div>
+            <div className="col-span-3 p-4 text-lg font-semibold text-slate-900 text-center">Deficit</div>
           </div>
 
           {/* Table Body */}
@@ -195,11 +180,7 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
                       <p className="font-medium text-slate-900 truncate">{material.name}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs text-slate-500">{material.rarity}</span>
-                        {material.originalId !== material.id && (
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded border border-blue-200">
-                            Merged
-                          </span>
-                        )}
+                        
                       </div>
                     </div>
                   </div>
@@ -216,7 +197,7 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
                 </div>
 
                 {/* Deficit with Status */}
-                <div className="col-span-2 p-4 flex items-center justify-center">
+                <div className="col-span-3 p-4 flex items-center justify-center">
                   <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border ${getStatusBgColor(material.deficit)}`}>
                     <Icon 
                       name={getStatusIcon(material.deficit)} 
@@ -229,25 +210,6 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div className="col-span-1 p-4 flex items-center justify-end">
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => handleInventoryUpdate(material.id, -1)}
-                      className="w-7 h-7 rounded-md border border-slate-300 hover:bg-slate-100 flex items-center justify-center transition-colors"
-                      aria-label="Decrease inventory"
-                    >
-                      <Icon name="Minus" size={14} className="text-slate-600" />
-                    </button>
-                    <button
-                      onClick={() => handleInventoryUpdate(material.id, 1)}
-                      className="w-7 h-7 rounded-md bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center transition-colors border border-blue-600"
-                      aria-label="Increase inventory"
-                    >
-                      <Icon name="Plus" size={14} />
-                    </button>
-                  </div>
-                </div>
               </div>
             ))}
           </div>
@@ -258,32 +220,9 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
       <div className="p-4 border-t border-slate-200 bg-slate-50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <span className="text-sm text-slate-700">
-                {mergedMaterials.filter(m => m.deficit <= 0).length} Complete
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-              <span className="text-sm text-slate-700">
-                {mergedMaterials.filter(m => m.deficit > 0 && m.deficit <= 10).length} Low
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-red-500"></div>
-              <span className="text-sm text-slate-700">
-                {mergedMaterials.filter(m => m.deficit > 10).length} Critical
-              </span>
-            </div>
+          
           </div>
-          <Button 
-            variant="default" 
-            iconName="Search"
-            className="bg-blue-500 hover:bg-blue-600 text-white border border-blue-600"
-          >
-            Find Farming Spots
-          </Button>
+          
         </div>
       </div>
     </div>

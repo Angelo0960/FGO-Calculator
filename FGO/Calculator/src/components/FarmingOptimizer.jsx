@@ -296,7 +296,7 @@ const FarmingOptimizer = ({
   // Loading state
   if (loading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
+      <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl border-0 shadow-2xl p-8 transform transition-all duration-300 hover:shadow-3xl">
         <div className="flex flex-col items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -308,24 +308,24 @@ const FarmingOptimizer = ({
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl border-0 shadow-2xl overflow-hidden transform transition-all duration-300 hover:shadow-3xl">
       {/* Header */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Farming Optimizer</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Farming Optimizer</h2>
             <p className="text-sm text-gray-600 mt-1">
               {localFarmingData.length} materials with icons loaded
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="px-3 py-1 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium border border-blue-200">
+          <div className="flex items-center gap-3">
+            <div className="px-4 py-2 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 rounded-xl text-sm font-medium border border-blue-200 shadow-md">
               {mergedMaterials.length} Merged
             </div>
-            <div className="px-3 py-1 bg-green-50 text-green-700 rounded-lg text-sm font-medium border border-green-200">
+            <div className="px-4 py-2 bg-gradient-to-r from-green-50 to-green-100 text-green-700 rounded-xl text-sm font-medium border border-green-200 shadow-md">
               {materialsWithDeficit.length} Need Farming
             </div>
-            <div className="px-3 py-1 bg-purple-50 text-purple-700 rounded-lg text-sm font-medium border border-purple-200">
+            <div className="px-4 py-2 bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 rounded-xl text-sm font-medium border border-purple-200 shadow-md">
               {materials.length} Raw
             </div>
           </div>
@@ -333,7 +333,7 @@ const FarmingOptimizer = ({
       </div>
 
       {/* Debug Info */}
-      <div className="p-4 bg-blue-50 border-b border-blue-200">
+      <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200 shadow-inner">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-semibold text-blue-800">Status</h3>
@@ -344,6 +344,7 @@ const FarmingOptimizer = ({
           <Button
             variant="outline"
             size="sm"
+            className="shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all"
             onClick={() => {
               console.log('=== DEBUG INFO ===');
               console.log('Raw Materials:', materials.length);
@@ -374,13 +375,13 @@ const FarmingOptimizer = ({
 
       {/* Materials Selection */}
       <div className="p-6 border-b border-gray-200">
-        <h3 className="font-semibold text-gray-900 mb-4">Select Material to Farm</h3>
+        <h3 className="font-semibold text-gray-900 mb-4 text-lg">Select Material to Farm</h3>
         {materialsWithDeficit.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-600">No materials found with deficit.</p>
             <Button
               variant="default"
-              className="mt-4"
+              className="mt-4 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
               onClick={() => handleSelectMaterial({ 
                 id: 'test-proof', 
                 name: 'Proof of Hero', 
@@ -399,24 +400,24 @@ const FarmingOptimizer = ({
               </span>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {materialsWithDeficit.map(material => (
                 <button
                   key={material.id || material.name}
                   onClick={() => handleSelectMaterial(material)}
                   disabled={searchStatus === 'searching'}
-                  className={`p-4 rounded-lg border transition-all ${
+                  className={`p-4 rounded-xl border-2 transition-all duration-300 transform ${
                     selectedMaterial?.name?.toLowerCase() === material.name?.toLowerCase()
-                      ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-100'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg scale-[1.02] ring-2 ring-blue-200'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gradient-to-br from-gray-50 to-white shadow-md hover:shadow-lg hover:-translate-y-1'
                   } ${searchStatus === 'searching' ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden flex-shrink-0 shadow-inner border border-gray-300">
                       <img 
                         src={getItemImage(material)}
                         alt={material.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transform hover:scale-110 transition-transform duration-300"
                         onError={(e) => {
                           console.log(`❌ Image load failed for ${material.name}`);
                           e.target.src = 'https://static.atlasacademy.io/NA/Items/99.png';
@@ -424,14 +425,14 @@ const FarmingOptimizer = ({
                       />
                     </div>
                     <div className="text-left flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">{material.name}</p>
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mt-1">
+                      <p className="font-semibold text-gray-900 truncate">{material.name}</p>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mt-2">
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-gray-600">
-                            Need: <span className="font-semibold text-gray-900">{material.deficit?.toLocaleString() || 0}</span>
+                            Need: <span className="font-bold text-gray-900 text-lg">{material.deficit?.toLocaleString() || 0}</span>
                           </span>
                           {material.originalIds?.length > 1 && (
-                            <span className="px-1.5 py-0.5 text-xs bg-purple-100 text-purple-800 rounded-full">
+                            <span className="px-2 py-1 text-xs bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 rounded-full shadow-sm">
                               +{material.originalIds.length - 1}
                             </span>
                           )}
@@ -454,10 +455,10 @@ const FarmingOptimizer = ({
 
       {/* Search Status */}
       {searchStatus === 'searching' && (
-        <div className="p-6 border-b border-gray-200 bg-blue-50">
+        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-100 shadow-inner">
           <div className="flex items-center gap-3">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
-            <span className="text-blue-700 font-medium">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <span className="text-blue-800 font-medium">
               Searching for "{selectedMaterial?.name}"...
             </span>
           </div>
@@ -469,13 +470,13 @@ const FarmingOptimizer = ({
         {selectedMaterial ? (
           <>
             {/* Selected Material */}
-            <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="mb-8 p-5 bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl border-2 border-blue-300 shadow-lg transform transition-all duration-300 hover:shadow-xl">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-lg bg-white border border-blue-200 overflow-hidden flex-shrink-0">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-white to-gray-100 border-2 border-blue-300 overflow-hidden flex-shrink-0 shadow-lg">
                   <img 
                     src={getItemImage(selectedMaterial)}
                     alt={selectedMaterial.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transform hover:scale-110 transition-transform duration-300"
                     onError={(e) => {
                       console.log(`❌ Image load failed for ${selectedMaterial.name}`);
                       e.target.src = 'https://static.atlasacademy.io/NA/Items/99.png';
@@ -485,39 +486,41 @@ const FarmingOptimizer = ({
                 <div className="flex-1">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-xl font-bold text-gray-900">
                         Farming {selectedMaterial.name}
                       </h3>
                       {selectedMaterial.originalIds?.length > 1 && (
-                        <p className="text-sm text-purple-600 mt-1">
-                          Combined from {selectedMaterial.originalIds.length} requirements (ascension + skills)
+                        <p className="text-sm text-purple-700 mt-1 font-medium">
+                          🔗 Combined from {selectedMaterial.originalIds.length} requirements
                         </p>
                       )}
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-blue-700">{selectedMaterial.deficit?.toLocaleString() || 0}</div>
-                      <div className="text-sm text-gray-600">Total needed</div>
+                      <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                        {selectedMaterial.deficit?.toLocaleString() || 0}
+                      </div>
+                      <div className="text-sm text-gray-600 font-medium">Total needed</div>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-4 mt-4">
+                  <div className="flex flex-wrap gap-6 mt-4">
                     {totalAPNeeded > 0 && (
                       <div className="text-sm">
-                        <span className="text-gray-600">Est. AP: </span>
-                        <span className="font-semibold text-blue-700">{totalAPNeeded.toLocaleString()}</span>
+                        <span className="text-gray-600 font-medium">Est. AP: </span>
+                        <span className="font-bold text-blue-700 text-lg">{totalAPNeeded.toLocaleString()}</span>
                       </div>
                     )}
                     {selectedMaterial.originalIds?.length > 1 && (
                       <div className="text-sm">
-                        <span className="text-gray-600">Sources: </span>
-                        <span className="font-semibold text-purple-700">{selectedMaterial.originalIds.length}</span>
+                        <span className="text-gray-600 font-medium">Sources: </span>
+                        <span className="font-bold text-purple-700 text-lg">{selectedMaterial.originalIds.length}</span>
                       </div>
                     )}
                   </div>
                 </div>
                 {farmingSpots.length > 0 && (
                   <div className="text-right">
-                    <div className="text-sm text-gray-600">Best Spot</div>
-                    <div className="text-2xl font-bold text-green-600">
+                    <div className="text-sm text-gray-600 font-medium">Best Spot</div>
+                    <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-700 bg-clip-text text-transparent">
                       #{farmingSpots[0]?.rank || 1}
                     </div>
                   </div>
@@ -528,8 +531,8 @@ const FarmingOptimizer = ({
             {/* Farming Spots */}
             {searchStatus === 'searching' ? (
               <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mb-6 shadow-lg"></div>
+                <h4 className="text-xl font-bold text-gray-900 mb-3">
                   Searching for Farming Spots
                 </h4>
                 <p className="text-gray-600">
@@ -537,9 +540,9 @@ const FarmingOptimizer = ({
                 </p>
               </div>
             ) : farmingSpots.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-semibold text-gray-900">
+                  <h4 className="font-bold text-gray-900 text-xl">
                     Best Farming Spots ({farmingSpots.length} found)
                   </h4>
                   <div className="text-sm text-gray-600">
@@ -548,78 +551,80 @@ const FarmingOptimizer = ({
                 </div>
                 
                 {farmingSpots.map((spot, index) => (
-                  <div key={spot.id} className="border border-gray-200 rounded-lg overflow-hidden hover:border-gray-300 transition-colors">
-                    <div className="p-4 bg-gray-50 border-b border-gray-200">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium border border-green-200">
+                  <div key={spot.id} className="bg-gradient-to-br from-white to-gray-50 rounded-2xl border-2 border-gray-300 overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+                    <div className="p-5 bg-gradient-to-r from-gray-100 to-gray-200 border-b-2 border-gray-300">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                          <div className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl text-sm font-bold border-2 border-emerald-700 shadow-lg">
                             RANK #{spot.rank}
                           </div>
                           <div>
-                            <h5 className="font-semibold text-gray-900">{spot.area}</h5>
-                            <p className="text-sm text-gray-600 truncate">{spot.quest}</p>
+                            <h5 className="font-bold text-gray-900 text-lg">{spot.area}</h5>
+                            <p className="text-sm text-gray-700 truncate">{spot.quest}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-lg font-bold text-blue-600">AP: {spot.apCost}</div>
-                          <div className="text-xs text-gray-600">
+                          <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">AP: {spot.apCost}</div>
+                          <div className="text-xs text-gray-600 font-medium">
                             {spot.runs?.toLocaleString() || 0} runs
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="p-4">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                        <div className="text-center p-3 bg-blue-50 rounded-lg">
-                          <div className="text-xs text-gray-600 mb-1">Drop Rate</div>
-                          <div className="text-xl font-bold text-blue-700">
+                    <div className="p-5">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-200 shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
+                          <div className="text-xs text-blue-700 font-medium mb-2">Drop Rate</div>
+                          <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
                             {spot.dropRate?.toFixed(1) || 0}%
                           </div>
                         </div>
                         
-                        <div className="text-center p-3 bg-green-50 rounded-lg">
-                          <div className="text-xs text-gray-600 mb-1">AP per Drop</div>
-                          <div className="text-xl font-bold text-green-700">
+                        <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl border-2 border-emerald-200 shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
+                          <div className="text-xs text-emerald-700 font-medium mb-2">AP per Drop</div>
+                          <div className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-green-700 bg-clip-text text-transparent">
                             {spot.apPerDrop?.toFixed(1) || 0}
                           </div>
                         </div>
                         
-                        <div className="text-center p-3 bg-purple-50 rounded-lg">
-                          <div className="text-xs text-gray-600 mb-1">Runs for 1</div>
-                          <div className="text-xl font-bold text-purple-700">
+                        <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border-2 border-purple-200 shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
+                          <div className="text-xs text-purple-700 font-medium mb-2">Runs for 1</div>
+                          <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
                             {spot.dropRate > 0 ? Math.ceil(100 / spot.dropRate) : '∞'}
                           </div>
                         </div>
                         
-                        <div className="text-center p-3 bg-orange-50 rounded-lg">
-                          <div className="text-xs text-gray-600 mb-1">For {selectedMaterial.deficit}</div>
-                          <div className="text-xl font-bold text-orange-700">
+                        <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border-2 border-orange-200 shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
+                          <div className="text-xs text-orange-700 font-medium mb-2">For {selectedMaterial.deficit}</div>
+                          <div className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-orange-800 bg-clip-text text-transparent">
                             {spot.dropRate > 0 ? Math.ceil((100 / spot.dropRate) * selectedMaterial.deficit) : '∞'}
                           </div>
                         </div>
                       </div>
                       
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-3">
                         <Button
                           variant="outline"
                           size="sm"
+                          className="shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all"
                           onClick={() => {
                             const query = `${spot.area} ${spot.quest} fate grand order`.replace(/\s+/g, '+');
                             window.open(`https://www.google.com/search?q=${query}`, '_blank');
                           }}
                         >
-                          Search Online
+                          🔍 Search Online
                         </Button>
                         <Button
                           variant="default"
                           size="sm"
+                          className="shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all"
                           onClick={() => {
                             const info = `${spot.area} - ${spot.quest} (${spot.apCost} AP, ${spot.dropRate?.toFixed(1)}% drop rate)`;
                             navigator.clipboard.writeText(info);
                           }}
                         >
-                          Copy Info
+                          📋 Copy Info
                         </Button>
                       </div>
                     </div>
@@ -628,10 +633,10 @@ const FarmingOptimizer = ({
               </div>
             ) : searchStatus === 'complete' ? (
               <div className="text-center py-8">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Icon name="Search" size={24} className="text-gray-400" />
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center shadow-lg">
+                  <Icon name="Search" size={28} className="text-gray-500" />
                 </div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                <h4 className="text-xl font-bold text-gray-900 mb-3">
                   No Farming Data Found
                 </h4>
                 <p className="text-gray-600 mb-4">
@@ -646,10 +651,10 @@ const FarmingOptimizer = ({
         ) : (
           /* No material selected */
           <div className="text-center py-12">
-            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full flex items-center justify-center">
-              <Icon name="Package" size={32} className="text-blue-500" />
+            <div className="w-24 h-24 mx-auto mb-8 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full flex items-center justify-center shadow-2xl">
+              <Icon name="Package" size={40} className="text-blue-600" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">
               Select a Material to Farm
             </h3>
             <p className="text-gray-600 max-w-md mx-auto">
@@ -658,7 +663,7 @@ const FarmingOptimizer = ({
                 : 'No materials available from inventory.'}
             </p>
             {mergedMaterials.length > 0 && materialsWithDeficit.length < mergedMaterials.length && (
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-gray-500 mt-3">
                 {mergedMaterials.length - materialsWithDeficit.length} materials have no deficit
               </p>
             )}

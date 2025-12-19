@@ -107,7 +107,7 @@ const SkillConfiguration = ({ skills, onSkillChange, errors }) => {
       {/* Simple Footer */}
       <div className="px-5 py-4 border-t border-slate-100 bg-slate-50">
         <div className="text-center">
-          <p className="text-sm text-slate-600">Changes are saved automatically</p>
+        
         </div>
       </div>
     </div>

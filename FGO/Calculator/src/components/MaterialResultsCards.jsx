@@ -163,15 +163,7 @@ const MaterialResultsCards = ({ materials, onInventoryUpdate, onExport, hasCalcu
           })}
         </div>
       </div>
-      <Button 
-        variant="default" 
-        fullWidth
-        iconName="ArrowRight" 
-        iconPosition="right"
-        className="bg-blue-500 hover:bg-blue-600 text-white border border-blue-600"
-      >
-        View Farming Routes
-      </Button>
+
     </div>
   );
 };
