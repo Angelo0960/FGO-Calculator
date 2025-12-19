@@ -467,9 +467,12 @@ const FarmingOptimizer = ({
                               {isSelected && (
                                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse flex-shrink-0"></div>
                               )}
-                              <span className="text-xs text-blue-500 font-medium truncate flex-shrink-0">
-                                {material.originalIds?.length > 1 ? `${material.originalIds.length}s` : 'Select'}
-                              </span>
+                             <span className="text-xs text-blue-500 font-medium truncate flex-shrink-0">
+  {material.originalIds?.length > 1 ? 
+    `See Farming Spots (${material.originalIds.length} sources)` : 
+    'See Farming Spots'
+  }
+</span>
                             </div>
                           </div>
                         </div>
@@ -582,22 +585,7 @@ const FarmingOptimizer = ({
         )}
       </div>
 
-      {/* Initial State - Only shown when no material is selected */}
-      {!selectedMaterial && materialsWithDeficit.length > 0 && (
-        <div className="p-6 border-t border-blue-100">
-          <div className="text-center py-8">
-            <div className="w-16 h-16 mx-auto mb-4 bg-blue-50 rounded-full flex items-center justify-center">
-              <Icon name="Package" size={24} className="text-blue-500" />
-            </div>
-            <h3 className="text-xl font-medium text-blue-900 mb-2">
-              Select a Material
-            </h3>
-            <p className="text-blue-600 max-w-md mx-auto text-sm">
-              Click on any material above to see optimal farming spots. Results will appear below the selected material.
-            </p>
-          </div>
-        </div>
-      )}
+      
     </div>
   );
 };

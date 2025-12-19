@@ -1,14 +1,12 @@
 import React from 'react';
 import Icon from './AppIcon';
 
-const SkillConfiguration = ({ skills, onSkillChange, errors }) => {
-  const SKILL_CONFIG = [
-    { name: 'Primary Skill', icon: 'Zap', color: 'bg-blue-500' },
-    { name: 'Second Skill', icon: 'Shield', color: 'bg-blue-600' },
-    { name: 'Third Skill', icon: 'Sword', color: 'bg-blue-700' }
-  ];
-  
+const SkillConfiguration = ({ skillNames = [], skills, onSkillChange, errors }) => {
   const MAX_LEVEL = 10;
+  
+  // Default icons if we don't have enough skill names
+  const defaultIcons = ['Zap', 'Shield', 'Sword'];
+  const defaultColors = ['bg-blue-500', 'bg-blue-600', 'bg-blue-700'];
 
   return (
     <div className="bg-white rounded-xl border border-blue-100">
@@ -21,7 +19,11 @@ const SkillConfiguration = ({ skills, onSkillChange, errors }) => {
             </div>
             <div>
               <h2 className="text-lg font-semibold text-blue-900 tracking-tight">Skill Configuration</h2>
-              <p className="text-sm text-blue-600 mt-1 font-medium">Set current and target skill levels</p>
+              <p className="text-sm text-blue-600 mt-1 font-medium">
+                {skillNames.length > 0 
+                  ? `Configure ${skillNames.length} skill${skillNames.length !== 1 ? 's' : ''}`
+                  : 'Set current and target skill levels'}
+              </p>
             </div>
           </div>
         </div>
@@ -30,7 +32,12 @@ const SkillConfiguration = ({ skills, onSkillChange, errors }) => {
       {/* Skills List */}
       <div className="p-6 space-y-8">
         {skills?.map((skill, index) => {
-          const config = SKILL_CONFIG[index];
+          // MODIFIED: Use the actual skill name passed from ServantSelector
+          // Fallback to "Skill 1", "Skill 2", etc. only if the API name is missing
+          const skillName = skillNames[index] || `Skill ${index + 1}`;
+          const iconName = defaultIcons[index] || 'Circle';
+          const colorClass = defaultColors[index] || 'bg-blue-500';
+          
           const current = skill?.current || 1;
           const target = skill?.target || 1;
           const isMaxed = target === MAX_LEVEL;
@@ -40,18 +47,22 @@ const SkillConfiguration = ({ skills, onSkillChange, errors }) => {
             <div key={index} className="space-y-6">
               {/* Skill Header */}
               <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 rounded-xl ${config.color} flex items-center justify-center flex-shrink-0`}>
-                  <Icon name={config.icon} size={20} className="text-white" />
+                <div className={`w-12 h-12 rounded-xl ${colorClass} flex items-center justify-center flex-shrink-0`}>
+                  <Icon name={iconName} size={20} className="text-white" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-blue-900 text-lg">{config.name}</h3>
-                    <div className="text-sm font-medium text-blue-700">
-                      Level <span className="text-blue-900 text-base">{current}</span> → 
-                      <span className={`ml-2 ${isMaxed ? 'text-amber-600' : 'text-blue-900'} text-base`}>
-                        {target}
-                      </span>
+                    <div>
+                      {/* MODIFIED: This now displays the real name (e.g., "Mana Burst") */}
+                      <h3 className="font-semibold text-blue-900 text-lg">{skillName}</h3>
+                      {/* Secondary label showing slot number if a custom name is active */}
+                      {skillNames[index] && (
+                        <p className="text-xs text-blue-400 font-medium uppercase tracking-wider mt-0.5">
+                          Active Skill {index + 1}
+                        </p>
+                      )}
                     </div>
+                    
                   </div>
                 </div>
               </div>
@@ -85,6 +96,8 @@ const SkillConfiguration = ({ skills, onSkillChange, errors }) => {
                   />
                 </div>
               </div>
+              
+              
               
               {/* Validation Message */}
               {isInvalid && (

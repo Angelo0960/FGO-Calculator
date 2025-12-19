@@ -736,55 +736,7 @@ const Inventory = ({
           )}
         </div>
 
-        {/* Footer Actions */}
-        <div className="p-3 md:p-4 border-t border-blue-100 bg-blue-50">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div className="flex flex-wrap gap-2 md:gap-4">
-              <Button
-                variant="outline"
-                iconName="RotateCcw"
-                onClick={handleLoadInventory}
-                size="sm"
-                className="flex-1 md:flex-none border-blue-300 text-blue-600 hover:bg-blue-50"
-              >
-                {isMobileView ? 'Load' : 'Load Saved'}
-              </Button>
-              <Button
-                variant="outline"
-                iconName="Trash2"
-                onClick={handleClearInventory}
-                size="sm"
-                className="flex-1 md:flex-none text-blue-600 border-blue-300 hover:bg-blue-50"
-              >
-                {isMobileView ? 'Clear' : 'Clear All'}
-              </Button>
-              <Button
-                variant="outline"
-                iconName="Upload"
-                onClick={() => setShowImportModal(true)}
-                size="sm"
-                className="flex-1 md:flex-none border-blue-300 text-blue-600 hover:bg-blue-50"
-              >
-                {isMobileView ? 'Import' : 'Import'}
-              </Button>
-              <Button
-                variant="outline"
-                iconName="Download"
-                onClick={() => setShowExportModal(true)}
-                size="sm"
-                className="flex-1 md:flex-none border-blue-300 text-blue-600 hover:bg-blue-50"
-              >
-                {isMobileView ? 'Export' : 'Export'}
-              </Button>
-            </div>
-            <div className="text-xs md:text-sm text-blue-500 text-center md:text-right">
-              Showing {filteredMaterials.length} materials
-              <span className="text-blue-400 ml-2">
-                ({Object.keys(inventory).length} in inventory • {materials.length} from current servant)
-              </span>
-            </div>
-          </div>
-        </div>
+       
 
         {/* Mobile Edit Modal */}
         {isMobileView && activeMaterial && (
@@ -965,22 +917,7 @@ const Inventory = ({
                   </div>
                 </div>
               </div>
-              <div className="p-4 md:p-6 border-t border-blue-100 flex flex-col sm:flex-row justify-end gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowExportModal(false)}
-                  className="flex-1 sm:flex-none border-blue-200 text-blue-600 hover:bg-blue-50"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="default"
-                  onClick={handleExport}
-                  className="flex-1 sm:flex-none bg-blue-500 hover:bg-blue-600 text-white border border-blue-600"
-                >
-                  Download JSON
-                </Button>
-              </div>
+              
             </div>
           </div>
         )}

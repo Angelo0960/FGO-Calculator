@@ -199,7 +199,7 @@ const MaterialResultsCards = ({ materials, onInventoryUpdate, onExport, hasCalcu
                         </div>
                       </div>
                       <div className="text-center p-2 bg-blue-50 rounded border border-blue-100 overflow-hidden">
-                        <div className="text-xs font-medium text-blue-600 mb-1 truncate px-1">Deficit</div>
+                        <div className="text-xs font-medium text-blue-600 mb-1 truncate px-1">Needed</div>
                         <div 
                           className={`font-bold text-lg truncate px-1 ${getStatusColor(material?.deficit)}`}
                           title={material?.deficit > 0 ? material?.deficit?.toLocaleString() : '0'}

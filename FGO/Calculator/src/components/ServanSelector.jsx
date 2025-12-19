@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import Select from './Select';
 import Icon from './AppIcon';
 
-const ServantSelector = ({ selectedServant, onServantChange }) => {
+const ServantSelector = ({ selectedServant, onServantChange, onSkillsUpdate }) => {
   const [servants, setServants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [skills, setSkills] = useState([]);
+  const [loadingSkills, setLoadingSkills] = useState(false);
 
   useEffect(() => {
     const fetchServants = async () => {
@@ -24,6 +26,8 @@ const ServantSelector = ({ selectedServant, onServantChange }) => {
             class: s.className,
             rarity: s.rarity,
             icon: s.extraAssets?.faces?.ascension?.[1] || Object.values(s.extraAssets?.faces?.ascension || {})[0],
+            // Store all skills data for this servant
+            allSkills: s.skills || []
           }))
           .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -36,6 +40,68 @@ const ServantSelector = ({ selectedServant, onServantChange }) => {
     };
     fetchServants();
   }, []);
+
+  // Fetch skills when servant is selected
+  useEffect(() => {
+    const fetchSkills = async () => {
+      if (!selectedServant) {
+        setSkills([]);
+        if (onSkillsUpdate) onSkillsUpdate([]);
+        return;
+      }
+
+      try {
+        setLoadingSkills(true);
+        const response = await fetch('https://api.atlasacademy.io/export/NA/nice_servant.json');
+        if (!response.ok) throw new Error('Data fetch failed');
+        const data = await response.json();
+        
+        const selectedServantData = data.find(s => s.id === selectedServant);
+        
+        if (selectedServantData && selectedServantData.skills) {
+          // Extract detailed skill information including names and details
+          const skillDetails = selectedServantData.skills.slice(0, 3).map((skill, index) => {
+            return {
+              id: skill.id || index,
+              name: skill.name || skill.detail || `Skill ${index + 1}`,
+              detail: skill.detail || '',
+              icon: skill.icon || null,
+              num: skill.num || index + 1,
+              originalData: skill // Keep original data for reference
+            };
+          });
+          
+          setSkills(skillDetails);
+          
+          // Notify parent component about the skill details
+          if (onSkillsUpdate) {
+            onSkillsUpdate(skillDetails);
+          }
+        } else {
+          const emptySkills = [
+            { id: 1, name: 'Skill 1', detail: '', num: 1 },
+            { id: 2, name: 'Skill 2', detail: '', num: 2 },
+            { id: 3, name: 'Skill 3', detail: '', num: 3 }
+          ];
+          setSkills(emptySkills);
+          if (onSkillsUpdate) onSkillsUpdate(emptySkills);
+        }
+      } catch (err) {
+        console.error('Error fetching skills:', err);
+        const fallbackSkills = [
+          { id: 1, name: 'Skill 1', detail: '', num: 1 },
+          { id: 2, name: 'Skill 2', detail: '', num: 2 },
+          { id: 3, name: 'Skill 3', detail: '', num: 3 }
+        ];
+        setSkills(fallbackSkills);
+        if (onSkillsUpdate) onSkillsUpdate(fallbackSkills);
+      } finally {
+        setLoadingSkills(false);
+      }
+    };
+
+    fetchSkills();
+  }, [selectedServant, onSkillsUpdate]);
 
   const selectedData = servants.find(s => s.id === selectedServant);
 
@@ -53,11 +119,14 @@ const ServantSelector = ({ selectedServant, onServantChange }) => {
     return 'text-orange-500';
   };
 
+  const handleServantChange = (servantId) => {
+    setSkills([]);
+    onServantChange(servantId);
+  };
+
   return (
     <div className="bg-white rounded-lg sm:rounded-xl border border-slate-200 shadow-sm sm:shadow-xl overflow-hidden transition-all duration-300">
-      {/* Header */}
-      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 bg-blue-700/80
-   flex justify-between items-center">
+      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 bg-blue-700/80 flex justify-between items-center">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="p-1.5 sm:p-2 bg-blue-600 rounded-md sm:rounded-lg shadow-blue-200 shadow-md sm:shadow-lg">
             <Icon name="User" size={14} sm:size={18} className="text-white" />
@@ -66,7 +135,6 @@ const ServantSelector = ({ selectedServant, onServantChange }) => {
             <h2 className="text-xl sm:text-xl font-bold sm:font-black uppercase tracking-wide sm:tracking-[0.2em] text-slate-800">
               Servant Profile
             </h2>
-            
           </div>
         </div>
         {loading && (
@@ -79,16 +147,12 @@ const ServantSelector = ({ selectedServant, onServantChange }) => {
       </div>
 
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-        {/* Search Field */}
-        <div className="space-y-1 sm:space-y-2 ">
-          <div className="flex justify-between items-center px-1">
-           
-          </div>
+        <div className="space-y-1 sm:space-y-2">
           <Select
             placeholder={loading ? "Accessing Records..." : "Input Servant Name..."}
             options={options}
             value={selectedServant}
-            onChange={onServantChange}
+            onChange={handleServantChange}
             onSearchChange={setSearchQuery}
             loading={loading}
             searchable
@@ -118,11 +182,9 @@ const ServantSelector = ({ selectedServant, onServantChange }) => {
           )}
         </div>
 
-        {/* Result Display */}
         {selectedData ? (
           <div className="group relative overflow-hidden bg-blue-50/30 border border-blue-100 sm:border-2 rounded-lg sm:rounded-2xl p-3 sm:p-5 transition-all hover:bg-white hover:shadow-lg sm:hover:shadow-2xl">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 relative z-10">
-              {/* Portrait */}
               <div className="relative flex-shrink-0 mx-auto sm:mx-0">
                 <div className="absolute inset-0 bg-blue-500 rounded-lg sm:rounded-xl rotate-2 sm:rotate-3 scale-105 opacity-20 group-hover:rotate-3 sm:group-hover:rotate-6 transition-transform" />
                 <img 
@@ -132,7 +194,6 @@ const ServantSelector = ({ selectedServant, onServantChange }) => {
                 />
               </div>
 
-              {/* Identity Info */}
               <div className="flex-1 min-w-0 text-center sm:text-left">
                 <div className="inline-block px-2 py-0.5 rounded bg-blue-600 text-[8px] sm:text-[9px] font-black text-white uppercase tracking-wide sm:tracking-widest mb-1 sm:mb-2 shadow-md sm:shadow-lg shadow-blue-200">
                   {selectedData.class}
@@ -143,11 +204,13 @@ const ServantSelector = ({ selectedServant, onServantChange }) => {
                 <div className={`flex items-center justify-center sm:justify-start gap-1 text-sm ${getRarityColor(selectedData.rarity)}`}>
                   {'★'.repeat(selectedData.rarity)}
                 </div>
+
+                {/* Display fetched skill names with details */}
+                
               </div>
 
-              {/* Deselect Button */}
               <button 
-                onClick={() => onServantChange(null)}
+                onClick={() => handleServantChange(null)}
                 className="absolute top-2 right-2 sm:static sm:relative p-1 sm:p-2 rounded-full hover:bg-red-50 text-slate-300 hover:text-red-500 transition-colors self-start"
                 title="Deselect Servant"
               >
@@ -155,7 +218,6 @@ const ServantSelector = ({ selectedServant, onServantChange }) => {
               </button>
             </div>
             
-            {/* Background Icon - Hidden on mobile */}
             <div className="absolute -bottom-4 -right-4 opacity-[0.05] group-hover:scale-110 transition-transform hidden sm:block">
               <Icon name={selectedData.class} size={120} />
             </div>
@@ -172,12 +234,13 @@ const ServantSelector = ({ selectedServant, onServantChange }) => {
         )}
       </div>
 
-      {/* Footer */}
       <div className="px-4 sm:px-6 py-3 sm:py-4 bg-blue-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-[8px] sm:text-[10px] font-bold">
-        
-        <div className="flex gap-2 sm:gap-4">
-          
-        </div>
+        {selectedData && skills.length > 0 && (
+          <div className="flex items-center gap-1 text-blue-600">
+            <Icon name="Zap" size={8} sm:size={10} />
+            <span>{skills.length} skill{skills.length !== 1 ? 's' : ''} detected</span>
+          </div>
+        )}
       </div>
     </div>
   );

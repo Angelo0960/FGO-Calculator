@@ -21,6 +21,7 @@ const ServantCalculator = () => {
     { current: 1, target: 10 },
     { current: 1, target: 10 }
   ]);
+  const [skillNames, setSkillNames] = useState([]); // NEW: Store fetched skill names
   const [advancedOptions, setAdvancedOptions] = useState({
     eventBonus: 0,
     dropRateModifier: 0,
@@ -100,6 +101,13 @@ const ServantCalculator = () => {
       setTargetLevel(selectedServantData.lvMax);
     }
   }, [selectedServantData]);
+
+  // Reset skill names when servant changes
+  useEffect(() => {
+    if (!selectedServant) {
+      setSkillNames([]);
+    }
+  }, [selectedServant]);
 
   // Automatically calculate materials when dependencies change
   useEffect(() => {
@@ -198,24 +206,7 @@ const ServantCalculator = () => {
       });
     }
 
-    // 2. Ember requirements
-    const emberRequirements = calculateEmberRequirements();
-    if (emberRequirements.length > 0) {
-      emberRequirements.forEach((ember) => {
-        materialsList.push({
-          id: `ember-${ember.type.toLowerCase()}`,
-          name: ember.name,
-          rarity: ember.type,
-          icon: ember.icon,
-          iconAlt: ember.iconAlt,
-          required: ember.required,
-          current: 0,
-          deficit: ember.required
-        });
-      });
-    }
-
-    // 3. Ascension materials
+    // 2. Ascension materials
     const ascensionMaterials = calculateAscensionMaterials();
     if (ascensionMaterials.length > 0) {
       ascensionMaterials.forEach((material) => {
@@ -232,7 +223,7 @@ const ServantCalculator = () => {
       });
     }
 
-    // 4. Skill materials
+    // 3. Skill materials
     const skillMaterials = calculateSkillMaterials();
     if (skillMaterials.length > 0) {
       skillMaterials.forEach((material) => {
@@ -323,8 +314,8 @@ const ServantCalculator = () => {
           case 5: multiplier = 1.0; break;
           case 4: multiplier = 0.8; break;
           case 3: multiplier = 0.6; break;
-          case 2: multiplier = 0.4; break;
-          case 1: multiplier = 0.2; break;
+          case 2: multiplier = 0.094; break;
+          case 1: multiplier = 0.05; break;
           default: multiplier = 0.5;
         }
         
@@ -337,102 +328,6 @@ const ServantCalculator = () => {
     });
     
     return totalQP;
-  };
-
-  const calculateEmberRequirements = () => {
-    // ADD NULL CHECK
-    if (!selectedServantData) {
-      return [];
-    }
-    
-    const levels = Math.max(0, targetLevel - currentLevel);
-    const embers = [];
-    
-    if (levels <= 0) return embers;
-    
-    const servantRarity = parseInt(selectedServantData.rarity);
-    
-    let multiplier;
-    switch(servantRarity) {
-      case 5: multiplier = 4; break;
-      case 4: multiplier = 3; break;
-      case 3: multiplier = 2.5; break;
-      case 2: multiplier = 2; break;
-      case 1: multiplier = 1.5; break;
-      default: multiplier = 2;
-    }
-    
-    const bronzeEmbers = Math.floor(levels * 6 * multiplier);
-    const silverEmbers = Math.floor(levels * 4 * multiplier);
-    const goldEmbers = Math.floor(levels * 2 * multiplier);
-    
-    if (servantRarity <= 2) {
-      const adjustedBronze = Math.floor(bronzeEmbers * 1.5);
-      const adjustedSilver = Math.floor(silverEmbers * 0.8);
-      const adjustedGold = Math.floor(goldEmbers * 0.5);
-      
-      if (adjustedBronze > 0) {
-        embers.push({
-          type: 'Bronze',
-          name: 'Bronze Ember',
-          icon: "https://images.unsplash.com/photo-1613346697264-350936cb3ba3?w=400&h=400&fit=crop",
-          iconAlt: 'Orange glowing magical ember',
-          required: adjustedBronze,
-        });
-      }
-      
-      if (adjustedSilver > 0) {
-        embers.push({
-          type: 'Silver',
-          name: 'Silver Ember',
-          icon: "https://images.unsplash.com/photo-1695405717412-1820bef82a43?w=400&h=400&fit=crop",
-          iconAlt: 'Silver magical ember',
-          required: adjustedSilver,
-        });
-      }
-      
-      if (adjustedGold > 0) {
-        embers.push({
-          type: 'Gold',
-          name: 'Gold Ember',
-          icon: "https://images.unsplash.com/photo-1646739048514-d1ca222fc51a?w=400&h=400&fit=crop",
-          iconAlt: 'Gold magical ember',
-          required: adjustedGold,
-        });
-      }
-    } else {
-      if (bronzeEmbers > 0) {
-        embers.push({
-          type: 'Bronze',
-          name: 'Bronze Ember',
-          icon: "https://images.unsplash.com/photo-1613346697264-350936cb3ba3?w=400&h=400&fit=crop",
-          iconAlt: 'Orange glowing magical ember',
-          required: bronzeEmbers,
-        });
-      }
-      
-      if (silverEmbers > 0) {
-        embers.push({
-          type: 'Silver',
-          name: 'Silver Ember',
-          icon: "https://images.unsplash.com/photo-1695405717412-1820bef82a43?w=400&h=400&fit=crop",
-          iconAlt: 'Silver magical ember',
-          required: silverEmbers,
-        });
-      }
-      
-      if (goldEmbers > 0) {
-        embers.push({
-          type: 'Gold',
-          name: 'Gold Ember',
-          icon: "https://images.unsplash.com/photo-1646739048514-d1ca222fc51a?w=400&h=400&fit=crop",
-          iconAlt: 'Gold magical ember',
-          required: goldEmbers,
-        });
-      }
-    }
-    
-    return embers;
   };
 
   const calculateAscensionMaterials = () => {
@@ -623,6 +518,13 @@ const ServantCalculator = () => {
     }));
   };
 
+  // Handle skill names update from ServantSelector
+  const handleSkillsUpdate = (fetchedSkills) => {
+    // Extract just the names from the skill objects
+    const names = fetchedSkills.map(skill => skill.name);
+    setSkillNames(names);
+  };
+
   const handleInventoryUpdate = (materialId, change) => {
     setMaterials(prevMaterials => 
       prevMaterials.map(material => {
@@ -748,6 +650,7 @@ const ServantCalculator = () => {
       { current: 1, target: 10 },
       { current: 1, target: 10 }
     ]);
+    setSkillNames([]); // Also reset skill names
     setAdvancedOptions({
       eventBonus: 0,
       dropRateModifier: 0,
@@ -870,6 +773,8 @@ const ServantCalculator = () => {
                       setTargetLevel(90); // Reset to default if no servant
                     }
                   }}
+                  // Pass the skill names update handler
+                  onSkillsUpdate={handleSkillsUpdate}
                   servants={servants}
                   loading={loadingServants}
                 />
@@ -888,6 +793,8 @@ const ServantCalculator = () => {
                 />
 
                 <SkillConfiguration
+                  // Pass the fetched skill names
+                  skillNames={skillNames}
                   skills={skills}
                   onSkillChange={handleSkillChange}
                   errors={errors}
