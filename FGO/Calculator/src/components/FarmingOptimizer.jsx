@@ -336,12 +336,19 @@ const FarmingOptimizer = ({
     console.log('  Total Deficit:', material.deficit);
     console.log('  Sources:', material.originalIds?.length || 1);
     
-    setSelectedMaterial(material);
-    setFarmingSpots([]);
-    
-    const spots = findFarmingSpots(material.name);
-    setFarmingSpots(spots);
-  }, [findFarmingSpots]);
+    // Toggle selection - if clicking the same material, deselect it
+    if (selectedMaterial?.name?.toLowerCase() === material.name?.toLowerCase()) {
+      setSelectedMaterial(null);
+      setFarmingSpots([]);
+      setSearchStatus('idle');
+    } else {
+      setSelectedMaterial(material);
+      setFarmingSpots([]);
+      
+      const spots = findFarmingSpots(material.name);
+      setFarmingSpots(spots);
+    }
+  }, [selectedMaterial, findFarmingSpots]);
 
   // Calculate total AP needed
   const totalAPNeeded = useMemo(() => {
@@ -408,67 +415,166 @@ const FarmingOptimizer = ({
                 const formattedDeficit = formatLargeNumber(material.deficit);
                 
                 return (
-                  <button
-                    key={material.id || material.name}
-                    onClick={() => handleSelectMaterial(material)}
-                    disabled={searchStatus === 'searching'}
-                    // Using a more compact layout without "Need" text
-                    className={`p-4 rounded-lg border transition-all duration-200 w-full min-h-[96px] ${
-                      isSelected
-                        ? 'border-blue-500 bg-blue-50 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.2)]'
-                        : 'border-blue-100 hover:border-blue-300 hover:bg-blue-50'
-                    } ${searchStatus === 'searching' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    <div className="flex flex-col w-full h-full">
-                      <div className="flex items-center gap-4 mb-2 w-full flex-1">
-                        <div className="w-12 h-12 rounded-lg bg-white border border-blue-200 overflow-hidden flex-shrink-0">
-                          <img 
-                            src={getItemImage(material)}
-                            alt={material.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.target.src = 'https://static.atlasacademy.io/NA/Items/99.png';
-                            }}
-                          />
-                        </div>
-                        <div className="text-left flex-1 min-w-0 w-full">
-                          <div 
-                            className={`font-medium text-blue-900 w-full ${
-                              hasMultipleLines 
-                                ? 'whitespace-pre-line leading-tight line-clamp-2' 
-                                : 'truncate'
-                            }`}
-                            title={material.name}
-                          >
-                            {hasMultipleLines ? formattedName : material.name}
+                  <div key={material.id || material.name} className="col-span-full">
+                    {/* Material Card */}
+                    <button
+                      onClick={() => handleSelectMaterial(material)}
+                      disabled={searchStatus === 'searching'}
+                      className={`p-4 rounded-lg border transition-all duration-200 w-full min-h-[96px] ${
+                        isSelected
+                          ? 'border-blue-500 bg-blue-50 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.2)]'
+                          : 'border-blue-100 hover:border-blue-300 hover:bg-blue-50'
+                      } ${searchStatus === 'searching' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <div className="flex flex-col w-full h-full">
+                        <div className="flex items-center gap-4 mb-2 w-full flex-1">
+                          <div className="w-12 h-12 rounded-lg bg-white border border-blue-200 overflow-hidden flex-shrink-0">
+                            <img 
+                              src={getItemImage(material)}
+                              alt={material.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.src = 'https://static.atlasacademy.io/NA/Items/99.png';
+                              }}
+                            />
                           </div>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-auto w-full">
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex items-baseline gap-1 min-w-0 flex-1 overflow-hidden">
-                            {/* Compact layout: Just show the number without "Need" */}
-                            <span 
-                              className="font-bold text-blue-900 text-lg truncate min-w-0"
-                              title={`Need ${material.deficit?.toLocaleString() || '0'}`}
+                          <div className="text-left flex-1 min-w-0 w-full">
+                            <div 
+                              className={`font-medium text-blue-900 w-full ${
+                                hasMultipleLines 
+                                  ? 'whitespace-pre-line leading-tight line-clamp-2' 
+                                  : 'truncate'
+                              }`}
+                              title={material.name}
                             >
-                              {formattedDeficit}
-                            </span>
-                            <span className="text-xs text-blue-600 flex-shrink-0">needed</span>
+                              {hasMultipleLines ? formattedName : material.name}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-                            {isSelected && (
-                              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse flex-shrink-0"></div>
-                            )}
-                            <span className="text-xs text-blue-500 font-medium truncate flex-shrink-0">
-                              {material.originalIds?.length > 1 ? `${material.originalIds.length}s` : 'Select'}
-                            </span>
+                        </div>
+                        
+                        <div className="mt-auto w-full">
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex items-baseline gap-1 min-w-0 flex-1 overflow-hidden">
+                              <span 
+                                className="font-bold text-blue-900 text-lg truncate min-w-0"
+                                title={`Need ${material.deficit?.toLocaleString() || '0'}`}
+                              >
+                                {formattedDeficit}
+                              </span>
+                              <span className="text-xs text-blue-600 flex-shrink-0">needed</span>
+                            </div>
+                            <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                              {isSelected && (
+                                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse flex-shrink-0"></div>
+                              )}
+                              <span className="text-xs text-blue-500 font-medium truncate flex-shrink-0">
+                                {material.originalIds?.length > 1 ? `${material.originalIds.length}s` : 'Select'}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </button>
+                    </button>
+
+                    {/* Farming Results - Appears directly below selected material */}
+                    {isSelected && (
+                      <div className="mt-4">
+                        {/* Search Status */}
+                        {searchStatus === 'searching' ? (
+                          <div className="text-center py-6 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-3"></div>
+                            <h4 className="text-lg font-medium text-blue-900 mb-2">
+                              Finding Optimal Spots
+                            </h4>
+                            <p className="text-blue-600 text-sm">
+                              Analyzing farming data for {material.name}...
+                            </p>
+                          </div>
+                        ) : farmingSpots.length > 0 ? (
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="font-semibold text-blue-900 text-lg">
+                                Optimal Farming Spots
+                              </h4>
+                              <div className="text-xs text-blue-600">
+                                {farmingSpots[0]?.runs?.toLocaleString() || 0} total samples
+                              </div>
+                            </div>
+                            
+                            {farmingSpots.map((spot, index) => (
+                              <div key={spot.id} className="bg-white rounded-lg border border-blue-200 overflow-hidden">
+                                {/* Spot Header */}
+                                <div className="p-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
+                                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                                    <div className="flex items-center gap-2">
+                                      <div className="px-2 py-1 bg-blue-600 text-white rounded-md text-xs font-semibold">
+                                        Rank #{spot.rank}
+                                      </div>
+                                      <div>
+                                        <h5 className="font-semibold text-blue-900 text-sm">{spot.area}</h5>
+                                        <p className="text-xs text-blue-700 truncate">{spot.quest}</p>
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <div className="text-xl font-bold text-blue-700">AP: {spot.apCost}</div>
+                                      <div className="text-xs text-blue-600 font-medium">
+                                        {spot.runs?.toLocaleString() || 0} runs sampled
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                {/* Metrics Grid */}
+                                <div className="p-3">
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                    <div className="text-center p-2 bg-blue-50 rounded border border-blue-200">
+                                      <div className="text-xs font-medium text-blue-700 mb-1">Drop Rate</div>
+                                      <div className="text-lg font-bold text-blue-900">
+                                        {spot.dropRate?.toFixed(1) || 0}%
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="text-center p-2 bg-blue-50 rounded border border-blue-200">
+                                      <div className="text-xs font-medium text-blue-700 mb-1">AP per Drop</div>
+                                      <div className="text-lg font-bold text-blue-900">
+                                        {spot.apPerDrop?.toFixed(1) || 0}
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="text-center p-2 bg-blue-50 rounded border border-blue-200">
+                                      <div className="text-xs font-medium text-blue-700 mb-1">Runs for 1</div>
+                                      <div className="text-lg font-bold text-blue-900">
+                                        {spot.dropRate > 0 ? Math.ceil(100 / spot.dropRate) : '∞'}
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="text-center p-2 bg-blue-50 rounded border border-blue-200">
+                                      <div className="text-xs font-medium text-blue-700 mb-1">Total Runs</div>
+                                      <div className="text-lg font-bold text-blue-900">
+                                        {spot.dropRate > 0 ? Math.ceil((100 / spot.dropRate) * material.deficit) : '∞'}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : searchStatus === 'complete' ? (
+                          <div className="text-center py-8 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="w-12 h-12 mx-auto mb-3 bg-blue-100 rounded-full flex items-center justify-center">
+                              <Icon name="Search" size={20} className="text-blue-500" />
+                            </div>
+                            <h4 className="text-base font-semibold text-blue-900 mb-1">
+                              No Data Found
+                            </h4>
+                            <p className="text-blue-600 text-sm">
+                              No farming data available for "{material.name}"
+                            </p>
+                          </div>
+                        ) : null}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>
@@ -476,173 +582,18 @@ const FarmingOptimizer = ({
         )}
       </div>
 
-      {/* Search Status */}
-      {searchStatus === 'searching' && (
-        <div className="px-6 py-4 border-t border-blue-100 bg-blue-50">
-          <div className="flex items-center gap-3">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
-            <span className="text-blue-700 font-medium">
-              Searching for "{selectedMaterial?.name}"...
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Results Section - Fixed container that appears below */}
-      {selectedMaterial && (
-        <div className="border-t border-blue-100">
-          <div className="">
-            <div className="max-h-[600px] overflow-y-auto pr-2">
-              <div className="space-y-6">
-                {/* Selected Material Header */}
-                <div className="p-5 bg-gradient-to-r from-blue-50 to-blue-50/50 rounded-xl border border-blue-200">
-                  <div className="flex items-center gap-5">
-                    <div className="w-20 h-20 rounded-xl bg-white border-2 border-blue-300 overflow-hidden flex-shrink-0">
-                      <img 
-                        src={getItemImage(selectedMaterial)}
-                        alt={selectedMaterial.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.src = 'https://static.atlasacademy.io/NA/Items/99.png';
-                        }}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <h3 className="text-xl font-semibold text-blue-900">
-                            Farming {selectedMaterial.name}
-                          </h3>
-                          {selectedMaterial.originalIds?.length > 1 && (
-                            <p className="text-sm text-blue-600 mt-1 font-medium">
-                              Combined from {selectedMaterial.originalIds.length} requirements
-                            </p>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <div className="text-3xl font-bold text-blue-700">
-                            {selectedMaterial.deficit?.toLocaleString() || 0}
-                          </div>
-                          <div className="text-sm text-blue-600 font-medium">Total needed</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Farming Spots */}
-                {searchStatus === 'searching' ? (
-                  <div className="text-center py-10">
-                    <div className="inline-block animate-spin rounded-full h-14 w-14 border-b-2 border-blue-500 mb-5"></div>
-                    <h4 className="text-xl font-medium text-blue-900 mb-2">
-                      Finding Optimal Spots
-                    </h4>
-                    <p className="text-blue-600">
-                      Analyzing farming data for {selectedMaterial.name}...
-                    </p>
-                  </div>
-                ) : farmingSpots.length > 0 ? (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-semibold text-blue-900 text-lg">
-                        Optimal Farming Spots
-                      </h4>
-                      <div className="text-sm text-blue-600">
-                        Ranked by efficiency • {farmingSpots[0]?.runs?.toLocaleString() || 0} total samples
-                      </div>
-                    </div>
-                    
-                    {farmingSpots.map((spot, index) => (
-                      <div key={spot.id} className="bg-white rounded-xl border border-blue-200 overflow-hidden">
-                        {/* Spot Header */}
-                        <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
-                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                              <div className="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm font-semibold">
-                                Rank #{spot.rank}
-                              </div>
-                              <div>
-                                <h5 className="font-semibold text-blue-900">{spot.area}</h5>
-                                <p className="text-sm text-blue-700 truncate">{spot.quest}</p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-2xl font-bold text-blue-700">AP: {spot.apCost}</div>
-                              <div className="text-xs text-blue-600 font-medium">
-                                {spot.runs?.toLocaleString() || 0} runs sampled
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Metrics Grid */}
-                        <div className="p-4">
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                              <div className="text-xs font-medium text-blue-700 mb-1">Drop Rate</div>
-                              <div className="text-xl font-bold text-blue-900">
-                                {spot.dropRate?.toFixed(1) || 0}%
-                              </div>
-                            </div>
-                            
-                            <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                              <div className="text-xs font-medium text-blue-700 mb-1">AP per Drop</div>
-                              <div className="text-xl font-bold text-blue-900">
-                                {spot.apPerDrop?.toFixed(1) || 0}
-                              </div>
-                            </div>
-                            
-                            <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                              <div className="text-xs font-medium text-blue-700 mb-1">Runs for 1</div>
-                              <div className="text-xl font-bold text-blue-900">
-                                {spot.dropRate > 0 ? Math.ceil(100 / spot.dropRate) : '∞'}
-                              </div>
-                            </div>
-                            
-                            <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                              <div className="text-xs font-medium text-blue-700 mb-1">Total Runs</div>
-                              <div className="text-xl font-bold text-blue-900">
-                                {spot.dropRate > 0 ? Math.ceil((100 / spot.dropRate) * selectedMaterial.deficit) : '∞'}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : searchStatus === 'complete' ? (
-                  <div className="text-center py-10">
-                    <div className="w-16 h-16 mx-auto mb-5 bg-blue-50 rounded-full flex items-center justify-center">
-                      <Icon name="Search" size={24} className="text-blue-500" />
-                    </div>
-                    <h4 className="text-lg font-semibold text-blue-900 mb-2">
-                      No Data Found
-                    </h4>
-                    <p className="text-blue-600">
-                      No farming data available for "{selectedMaterial.name}"
-                    </p>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Initial State - Only shown when no material is selected */}
-      {!selectedMaterial && (
+      {!selectedMaterial && materialsWithDeficit.length > 0 && (
         <div className="p-6 border-t border-blue-100">
-          <div className="text-center py-12">
-            <div className="w-20 h-20 mx-auto mb-6 bg-blue-50 rounded-full flex items-center justify-center">
-              <Icon name="Package" size={32} className="text-blue-500" />
+          <div className="text-center py-8">
+            <div className="w-16 h-16 mx-auto mb-4 bg-blue-50 rounded-full flex items-center justify-center">
+              <Icon name="Package" size={24} className="text-blue-500" />
             </div>
-            <h3 className="text-2xl font-medium text-blue-900 mb-3">
+            <h3 className="text-xl font-medium text-blue-900 mb-2">
               Select a Material
             </h3>
-            <p className="text-blue-600 max-w-md mx-auto">
-              {mergedMaterials.length > 0 
-                ? `Choose from ${materialsWithDeficit.length} materials with deficit to find optimal farming spots.`
-                : 'Materials will appear here once you have inventory deficit.'}
+            <p className="text-blue-600 max-w-md mx-auto text-sm">
+              Click on any material above to see optimal farming spots. Results will appear below the selected material.
             </p>
           </div>
         </div>
