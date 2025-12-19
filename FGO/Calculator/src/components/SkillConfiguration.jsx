@@ -21,7 +21,7 @@ const SkillConfiguration = ({ skills, onSkillChange, errors }) => {
             </div>
             <h2 className="text-lg font-semibold text-slate-800">Skills</h2>
           </div>
-          <div className="text-sm text-slate-500">Max: 10</div>
+         
         </div>
       </div>
 
@@ -52,11 +52,7 @@ const SkillConfiguration = ({ skills, onSkillChange, errors }) => {
                         {target}
                       </span>
                     </div>
-                    {!isInvalid && target > current && (
-                      <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                        +{target - current}
-                      </span>
-                    )}
+                    
                   </div>
                 </div>
               </div>

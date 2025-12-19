@@ -39,13 +39,13 @@ const LevelConfiguration = ({
     const handleClick = isTarget ? handleTargetAscensionClick : handleCurrentAscensionClick;
     
     return (
-      <div className="flex gap-2 sm:gap-3">
+      <div className="flex gap-1 sm:gap-2">
         {[0, 1, 2, 3, 4].map((i) => (
           <button
             key={i}
             type="button"
             onClick={() => handleClick(i)}
-            className={`w-6 h-6 sm:w-8 sm:h-8 rotate-45 border-2 transition-all duration-200 flex items-center justify-center ${
+            className={`w-6 h-6 sm:w-7 sm:h-7 rotate-45 border-2 transition-all duration-200 flex items-center justify-center ${
               i <= count 
                 ? `${
                     isTarget 
@@ -65,7 +65,7 @@ const LevelConfiguration = ({
     <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
       {/* Header */}
       <div className="px-4 sm:px-5 py-4 border-b border-slate-100 bg-white">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
               <Icon name="TrendingUp" size={16} className="text-white" />
@@ -133,7 +133,7 @@ const LevelConfiguration = ({
             
             {/* Current Ascension Pips */}
             <div className="space-y-3 mb-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="text-center flex-1">
                   <div className="flex justify-center">
                     {renderPips(currentAscension, false)}
@@ -143,8 +143,12 @@ const LevelConfiguration = ({
                   </div>
                 </div>
                 
-                <Icon name="ArrowRight" size={16} className="text-slate-400 mx-4 hidden sm:block" />
-                <Icon name="ArrowDown" size={16} className="text-slate-400 mx-auto block sm:hidden" />
+                <div className="hidden md:block">
+                  <Icon name="ArrowRight" size={16} className="text-slate-400" />
+                </div>
+                <div className="md:hidden">
+                  <Icon name="ArrowDown" size={16} className="text-slate-400 mx-auto" />
+                </div>
                 
                 {/* Target Ascension Pips */}
                 <div className="text-center flex-1">
