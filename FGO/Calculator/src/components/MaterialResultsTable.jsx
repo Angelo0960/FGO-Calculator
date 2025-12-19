@@ -131,8 +131,8 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden">
-      {/* Header */}
-      <div className="p-6 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-blue-100/50">
+      {/* Header - Desktop */}
+      <div className="p-6 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-blue-100/50 hidden md:block">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-slate-900">Material Requirements</h2>
@@ -145,10 +145,20 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
         </div>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
+      {/* Header - Mobile */}
+      <div className="p-4 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-blue-100/50 md:hidden">
+        <div className="flex flex-col items-center text-center">
+          <h2 className="text-lg font-bold text-slate-900">Materials Needed</h2>
+          <p className="text-sm text-slate-600 mt-1">
+            {mergedMaterials.length} materials required
+          </p>
+        </div>
+      </div>
+
+      {/* Table - Desktop View */}
+      <div className="overflow-x-auto hidden md:block">
         <div className="min-w-full">
-          {/* Table Header */}
+          {/* Table Header - Desktop */}
           <div className="grid grid-cols-12 bg-slate-50 border-b border-slate-200">
             <div className="col-span-5 p-4 text-lg font-semibold text-slate-900">Material</div>
             <div className="col-span-2 p-4 text-lg font-semibold text-slate-900 text-center">Required</div>
@@ -156,14 +166,14 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
             <div className="col-span-3 p-4 text-lg font-semibold text-slate-900 text-center">Deficit</div>
           </div>
 
-          {/* Table Body */}
+          {/* Table Body - Desktop */}
           <div className="divide-y divide-slate-100">
             {mergedMaterials.map((material) => (
               <div 
                 key={material.id} 
                 className="grid grid-cols-12 hover:bg-blue-50/30 transition-colors"
               >
-                {/* Material Info */}
+                {/* Material Info - Desktop */}
                 <div className="col-span-5 p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">
@@ -186,17 +196,17 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
                   </div>
                 </div>
 
-                {/* Required */}
+                {/* Required - Desktop */}
                 <div className="col-span-2 p-4 flex items-center justify-center">
                   <span className="font-semibold text-slate-900">{material.required.toLocaleString()}</span>
                 </div>
 
-                {/* Current */}
+                {/* Current - Desktop */}
                 <div className="col-span-2 p-4 flex items-center justify-center">
                   <span className="text-slate-600">{material.current.toLocaleString()}</span>
                 </div>
 
-                {/* Deficit with Status */}
+                {/* Deficit with Status - Desktop */}
                 <div className="col-span-3 p-4 flex items-center justify-center">
                   <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border ${getStatusBgColor(material.deficit)}`}>
                     <Icon 
@@ -209,20 +219,64 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
                     </span>
                   </div>
                 </div>
-
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Footer Stats */}
-      <div className="p-4 border-t border-slate-200 bg-slate-50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-          
-          </div>
-          
+      {/* Mobile Cards View */}
+      <div className="md:hidden">
+        <div className="divide-y divide-slate-100">
+          {mergedMaterials.map((material) => (
+            <div key={material.id} className="p-4 hover:bg-blue-50/30 transition-colors">
+              <div className="flex items-start justify-between gap-4">
+                {/* Material Info - Mobile */}
+                <div className="flex items-start gap-3 flex-1">
+                  <div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">
+                    <img 
+                      src={material.icon} 
+                      alt={material.iconAlt || material.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src = "https://placehold.co/48x48/ccc/fff?text=?";
+                      }}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-slate-900 truncate">{material.name}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs text-slate-500">{material.rarity}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status Badge - Mobile */}
+                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border ${getStatusBgColor(material.deficit)}`}>
+                  <Icon 
+                    name={getStatusIcon(material.deficit)} 
+                    size={14} 
+                    className={getStatusColor(material.deficit)}
+                  />
+                  <span className={`font-medium ${getStatusColor(material.deficit)}`}>
+                    {material.deficit > 0 ? material.deficit.toLocaleString() : 0}
+                  </span>
+                </div>
+              </div>
+
+              {/* Stats Row - Mobile */}
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <div className="text-center p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <div className="text-xs text-slate-500 mb-1">Required</div>
+                  <div className="font-semibold text-slate-900">{material.required.toLocaleString()}</div>
+                </div>
+                <div className="text-center p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <div className="text-xs text-slate-500 mb-1">Current</div>
+                  <div className="font-medium text-slate-700">{material.current.toLocaleString()}</div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

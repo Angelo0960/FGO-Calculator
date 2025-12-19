@@ -78,18 +78,9 @@ const MaterialResultsCards = ({ materials, onInventoryUpdate, onExport, hasCalcu
             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center border border-blue-200">
               <Icon name="Package" size={20} className="text-blue-500" />
             </div>
-            <h2 className="text-base font-semibold text-slate-900">Materials ({materials.length})</h2>
+            <h1 className="text-2xl font-semibold text-blue-700">Materials ({materials.length})</h1>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm"
-            iconName="Download" 
-            iconPosition="left"
-            onClick={onExport}
-            className="border-blue-300 text-blue-600 hover:bg-blue-50"
-          >
-            Export
-          </Button>
+          
         </div>
 
         <div className="grid gap-3">
@@ -111,53 +102,30 @@ const MaterialResultsCards = ({ materials, onInventoryUpdate, onExport, hasCalcu
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <h3 className="font-medium text-slate-900">{material?.name}</h3>
-                      <Icon 
-                        name={getStatusIcon(material?.deficit)} 
-                        size={20} 
-                        className={getStatusColor(material?.deficit)}
-                      />
+                      <h3 className="text-lg pt-4 font-medium text-blue-900">{material?.name}</h3>
+                     
                     </div>
-                    <p className="text-xs text-slate-500 mb-2">{material?.rarity}</p>
-                    <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${status?.bg} ${status?.color} border ${status?.color.replace('text-', 'border-')}20`}>
-                      {status?.text}
-                    </span>
+                    
+                    
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-3 mb-3">
                   <div className="text-center">
-                    <p className="text-xs text-slate-500 mb-1">Required</p>
+                    <p className="text-md text-slate-700 mb-1">Required</p>
                     <p className="font-semibold text-slate-900">{material?.required?.toLocaleString()}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-xs text-slate-500 mb-1">Current</p>
+                    <p className="text-md text-slate-500 mb-1">Current</p>
                     <p className="text-slate-600">{material?.current?.toLocaleString()}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-xs text-slate-500 mb-1">Deficit</p>
+                    <p className="text-md text-slate-500 mb-1">Deficit</p>
                     <p className={`font-semibold ${getStatusColor(material?.deficit)}`}>
                       {material?.deficit > 0 ? material?.deficit?.toLocaleString() : 0}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center justify-center gap-2">
-                  <button
-                    onClick={() => onInventoryUpdate(material?.id, -1)}
-                    className="flex-1 h-10 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center gap-2 transition-colors border border-slate-200"
-                    aria-label="Decrease inventory"
-                  >
-                    <Icon name="Minus" size={16} />
-                    <span className="text-sm font-medium">Remove</span>
-                  </button>
-                  <button
-                    onClick={() => onInventoryUpdate(material?.id, 1)}
-                    className="flex-1 h-10 rounded-md bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center gap-2 transition-colors border border-blue-600"
-                    aria-label="Increase inventory"
-                  >
-                    <Icon name="Plus" size={16} />
-                    <span className="text-sm font-medium">Add</span>
-                  </button>
-                </div>
+                
               </div>
             );
           })}
