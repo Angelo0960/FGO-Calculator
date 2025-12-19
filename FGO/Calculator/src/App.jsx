@@ -1,15 +1,13 @@
-import Forms from "./components/form.jsx";
-import Header from "./components/header.jsx";
-import Tabs from "./components/Tab.jsx";
+import Header from "./components/Header.jsx"
+import ServantSelectorUI from "./components/ServantSelectionUI.jsx";
 
 function App() {
   
 
   return (
     <>
-      
-      <Header name = "Angelo"/>
-      <Tabs />
+        <Header/>
+        <ServantSelectorUI/>
       
     </>
   )
