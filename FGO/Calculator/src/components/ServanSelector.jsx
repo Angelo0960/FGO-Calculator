@@ -26,8 +26,6 @@ const ServantSelector = ({ selectedServant, onServantChange, onSkillsUpdate }) =
             class: s.className,
             rarity: s.rarity,
             icon: s.extraAssets?.faces?.ascension?.[1] || Object.values(s.extraAssets?.faces?.ascension || {})[0],
-            // Store all skills data for this servant
-            allSkills: s.skills || []
           }))
           .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -41,7 +39,7 @@ const ServantSelector = ({ selectedServant, onServantChange, onSkillsUpdate }) =
     fetchServants();
   }, []);
 
-  // Fetch skills when servant is selected
+  // Fetch skills with icons when servant is selected
   useEffect(() => {
     const fetchSkills = async () => {
       if (!selectedServant) {
@@ -59,15 +57,36 @@ const ServantSelector = ({ selectedServant, onServantChange, onSkillsUpdate }) =
         const selectedServantData = data.find(s => s.id === selectedServant);
         
         if (selectedServantData && selectedServantData.skills) {
-          // Extract detailed skill information including names and details
+          // Extract detailed skill information including names, details, and icons
           const skillDetails = selectedServantData.skills.slice(0, 3).map((skill, index) => {
+            // Get skill icon from extraAssets
+            let skillIcon = null;
+            if (selectedServantData.extraAssets?.skills) {
+              // Try to get the skill icon by skill ID
+              const skillId = skill.id || skill.num;
+              if (skillId && selectedServantData.extraAssets.skills[skillId]) {
+                skillIcon = selectedServantData.extraAssets.skills[skillId];
+              } else {
+                // Fallback to skill num
+                const skillNum = skill.num || index + 1;
+                if (selectedServantData.extraAssets.skills[skillNum]) {
+                  skillIcon = selectedServantData.extraAssets.skills[skillNum];
+                }
+              }
+            }
+            
+            // Fallback to skill icon URL from skill data
+            if (!skillIcon && skill.icon) {
+              skillIcon = skill.icon;
+            }
+            
             return {
               id: skill.id || index,
               name: skill.name || skill.detail || `Skill ${index + 1}`,
               detail: skill.detail || '',
-              icon: skill.icon || null,
+              icon: skillIcon,
               num: skill.num || index + 1,
-              originalData: skill // Keep original data for reference
+              originalData: skill
             };
           });
           
@@ -79,9 +98,9 @@ const ServantSelector = ({ selectedServant, onServantChange, onSkillsUpdate }) =
           }
         } else {
           const emptySkills = [
-            { id: 1, name: 'Skill 1', detail: '', num: 1 },
-            { id: 2, name: 'Skill 2', detail: '', num: 2 },
-            { id: 3, name: 'Skill 3', detail: '', num: 3 }
+            { id: 1, name: 'Skill 1', detail: '', icon: null, num: 1 },
+            { id: 2, name: 'Skill 2', detail: '', icon: null, num: 2 },
+            { id: 3, name: 'Skill 3', detail: '', icon: null, num: 3 }
           ];
           setSkills(emptySkills);
           if (onSkillsUpdate) onSkillsUpdate(emptySkills);
@@ -89,9 +108,9 @@ const ServantSelector = ({ selectedServant, onServantChange, onSkillsUpdate }) =
       } catch (err) {
         console.error('Error fetching skills:', err);
         const fallbackSkills = [
-          { id: 1, name: 'Skill 1', detail: '', num: 1 },
-          { id: 2, name: 'Skill 2', detail: '', num: 2 },
-          { id: 3, name: 'Skill 3', detail: '', num: 3 }
+          { id: 1, name: 'Skill 1', detail: '', icon: null, num: 1 },
+          { id: 2, name: 'Skill 2', detail: '', icon: null, num: 2 },
+          { id: 3, name: 'Skill 3', detail: '', icon: null, num: 3 }
         ];
         setSkills(fallbackSkills);
         if (onSkillsUpdate) onSkillsUpdate(fallbackSkills);
@@ -126,13 +145,13 @@ const ServantSelector = ({ selectedServant, onServantChange, onSkillsUpdate }) =
 
   return (
     <div className="bg-white rounded-lg sm:rounded-xl border border-slate-200 shadow-sm sm:shadow-xl overflow-hidden transition-all duration-300">
-      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 bg-blue-700/80 flex justify-between items-center">
+      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 bg-blue-700 flex justify-between items-center">
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="p-1.5 sm:p-2 bg-blue-600 rounded-md sm:rounded-lg shadow-blue-200 shadow-md sm:shadow-lg">
-            <Icon name="User" size={14} sm:size={18} className="text-white" />
+          <div className="p-1.5 sm:p-2 bg-blue-50 rounded-md sm:rounded-lg">
+            <Icon name="User" size={25} sm:size={18} className="text-blue-600" />
           </div>
           <div>
-            <h2 className="text-xl sm:text-xl font-bold sm:font-black uppercase tracking-wide sm:tracking-[0.2em] text-slate-800">
+            <h2 className="text-xl sm:text-xl font-bold sm:font-black uppercase tracking-wide sm:tracking-[0.2em] text-blue-100">
               Servant Profile
             </h2>
           </div>
@@ -146,7 +165,7 @@ const ServantSelector = ({ selectedServant, onServantChange, onSkillsUpdate }) =
         )}
       </div>
 
-      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 bg-blue-50/30">
         <div className="space-y-1 sm:space-y-2">
           <Select
             placeholder={loading ? "Accessing Records..." : "Input Servant Name..."}
@@ -205,7 +224,7 @@ const ServantSelector = ({ selectedServant, onServantChange, onSkillsUpdate }) =
                   {'★'.repeat(selectedData.rarity)}
                 </div>
 
-                {/* Display fetched skill names with details */}
+                {/* Display fetched skill names with icons */}
                 
               </div>
 

@@ -21,7 +21,8 @@ const ServantCalculator = () => {
     { current: 1, target: 10 },
     { current: 1, target: 10 }
   ]);
-  const [skillNames, setSkillNames] = useState([]); // NEW: Store fetched skill names
+  const [skillNames, setSkillNames] = useState([]); // Store fetched skill names
+  const [skillIcons, setSkillIcons] = useState([]); // NEW: Store fetched skill icons
   const [advancedOptions, setAdvancedOptions] = useState({
     eventBonus: 0,
     dropRateModifier: 0,
@@ -102,10 +103,11 @@ const ServantCalculator = () => {
     }
   }, [selectedServantData]);
 
-  // Reset skill names when servant changes
+  // Reset skill names and icons when servant changes
   useEffect(() => {
     if (!selectedServant) {
       setSkillNames([]);
+      setSkillIcons([]); // Also reset skill icons
     }
   }, [selectedServant]);
 
@@ -518,11 +520,13 @@ const ServantCalculator = () => {
     }));
   };
 
-  // Handle skill names update from ServantSelector
+  // Handle skill data update from ServantSelector
   const handleSkillsUpdate = (fetchedSkills) => {
-    // Extract just the names from the skill objects
+    // Extract names and icons from the skill objects
     const names = fetchedSkills.map(skill => skill.name);
+    const icons = fetchedSkills.map(skill => skill.icon || null); // Get icons or null if not available
     setSkillNames(names);
+    setSkillIcons(icons); // Store skill icons
   };
 
   const handleInventoryUpdate = (materialId, change) => {
@@ -651,6 +655,7 @@ const ServantCalculator = () => {
       { current: 1, target: 10 }
     ]);
     setSkillNames([]); // Also reset skill names
+    setSkillIcons([]); // Also reset skill icons
     setAdvancedOptions({
       eventBonus: 0,
       dropRateModifier: 0,
@@ -672,6 +677,17 @@ const ServantCalculator = () => {
     if (!selectedServantData) return 0;
     return calculateQPRequirements();
   };
+
+  // Create currentInventory object from materials for passing to Inventory component
+  const currentInventory = useMemo(() => {
+    const inventory = {};
+    materials.forEach(material => {
+      if (material.id) {
+        inventory[material.id] = material.current || 0;
+      }
+    });
+    return inventory;
+  }, [materials]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -710,48 +726,61 @@ const ServantCalculator = () => {
               </div>
             </div>
             
-            {/* Tab Navigation - Updated with Farming tab */}
-            <div className="flex border-b border-gray-200">
-              <button
-                onClick={() => setActiveView('calculator')}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  activeView === 'calculator'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Icon name="Calculator" size={16} />
-                  <span>Calculator</span>
-                </div>
-              </button>
-              <button
-                onClick={() => setActiveView('inventory')}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  activeView === 'inventory'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Icon name="Package" size={16} />
-                  <span>Inventory</span>
-                </div>
-              </button>
-              <button
-                onClick={() => setActiveView('farming')}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  activeView === 'farming'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Icon name="MapPin" size={16} />
-                  <span>Farming Guide</span>
-                </div>
-              </button>
-            </div>
+           {/* Tab Navigation - Updated with Farming tab */}
+<div className="relative flex gap-1 sm:gap-1 p-0.5 sm:p-1 rounded-lg sm:rounded-xl max-w-full overflow-hidden bg-blue-50 border border-blue-100" >
+  {/* Active tab indicator - moves behind active button */}
+  <div 
+    className={`absolute h-[calc(100%-4px)] sm:h-[calc(100%-8px)] bg-blue-600 rounded-md sm:rounded-lg shadow-sm transition-all duration-200 ease-out ${
+      activeView === 'calculator' 
+        ? 'left-[2px] sm:left-1 w-[calc(33.333%-2px)] sm:w-[calc(33.333%-4px)]' 
+        : activeView === 'inventory' 
+          ? 'left-[calc(33.333%+1px)] sm:left-[calc(33.333%+2px)] w-[calc(33.333%-2px)] sm:w-[calc(33.333%-4px)]' 
+          : 'left-[calc(66.666%+1px)] sm:left-[calc(66.666%+3px)] w-[calc(33.333%-2px)] sm:w-[calc(33.333%-4px)]'
+    }`}
+  />
+  
+  <button
+    onClick={() => setActiveView('calculator')}
+    className={`flex-1 px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md sm:rounded-lg transition-all duration-200 relative z-10 min-w-0 ${
+      activeView === 'calculator'
+        ? 'text-white font-semibold'
+        : 'text-blue-700 hover:text-blue-900'
+    }`}
+  >
+    <div className="flex items-center justify-center gap-1 sm:gap-2">
+      <Icon name="Calculator" size={14} sm:size={16} className={activeView === 'calculator' ? 'text-white' : 'text-blue-500'} />
+      <span className="truncate">Calculator</span>
+    </div>
+  </button>
+  
+  <button
+    onClick={() => setActiveView('inventory')}
+    className={`flex-1 px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md sm:rounded-lg transition-all duration-200 relative z-10 min-w-0 ${
+      activeView === 'inventory'
+        ? 'text-white font-semibold'
+        : 'text-blue-700 hover:text-blue-900'
+    }`}
+  >
+    <div className="flex items-center justify-center gap-1 sm:gap-2">
+      <Icon name="Package" size={14} sm:size={16} className={activeView === 'inventory' ? 'text-white' : 'text-blue-500'} />
+      <span className="truncate">Inventory</span>
+    </div>
+  </button>
+  
+  <button
+    onClick={() => setActiveView('farming')}
+    className={`flex-1 px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md sm:rounded-lg transition-all duration-200 relative z-10 min-w-0 ${
+      activeView === 'farming'
+        ? 'text-white font-semibold'
+        : 'text-blue-700 hover:text-blue-900'
+    }`}
+  >
+    <div className="flex items-center justify-center gap-1 sm:gap-2">
+      <Icon name="MapPin" size={14} sm:size={16} className={activeView === 'farming' ? 'text-white' : 'text-blue-500'} />
+      <span className="truncate">Farming</span>
+    </div>
+  </button>
+</div>
           </div>
 
           {/* Conditional rendering for each view */}
@@ -773,7 +802,7 @@ const ServantCalculator = () => {
                       setTargetLevel(90); // Reset to default if no servant
                     }
                   }}
-                  // Pass the skill names update handler
+                  // Pass the skill data update handler
                   onSkillsUpdate={handleSkillsUpdate}
                   servants={servants}
                   loading={loadingServants}
@@ -793,8 +822,9 @@ const ServantCalculator = () => {
                 />
 
                 <SkillConfiguration
-                  // Pass the fetched skill names
+                  // Pass the fetched skill names and icons
                   skillNames={skillNames}
+                  skillIcons={skillIcons} // Pass skill icons
                   skills={skills}
                   onSkillChange={handleSkillChange}
                   errors={errors}
@@ -849,6 +879,8 @@ const ServantCalculator = () => {
             <div className="grid lg:grid-cols-1 gap-6">
               <Inventory
                 materials={materials}
+                // Pass current inventory values to prevent reset
+                currentInventory={currentInventory}
                 onSaveInventory={handleSaveInventory}
                 onLoadInventory={handleLoadInventory}
                 onClearInventory={handleClearInventory}

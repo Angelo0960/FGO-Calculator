@@ -1,5 +1,4 @@
-
-// components/ui/Select.jsx - Shadcn style Select
+// components/ui/Select.jsx - Blue Themed Select with Larger Text
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown, Check, Search, X } from "lucide-react";
 import { cn } from "./utils/cn";
@@ -27,6 +26,9 @@ const Select = React.forwardRef(({
     onOpenChange,
     onSearchChange,
     renderOption,
+    inputClassName,
+    dropdownClassName,
+    optionClassName,
     ...props
 }, ref) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -124,6 +126,9 @@ const Select = React.forwardRef(({
     // Remove custom props that React complains about
     delete domProps.onSearchChange;
     delete domProps.renderOption;
+    delete domProps.inputClassName;
+    delete domProps.dropdownClassName;
+    delete domProps.optionClassName;
 
     return (
         <div className={cn("relative", className)} ref={dropdownRef}>
@@ -132,11 +137,11 @@ const Select = React.forwardRef(({
                     htmlFor={selectId}
                     className={cn(
                         "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block",
-                        error ? "text-destructive" : "text-foreground"
+                        error ? "text-red-600" : "text-blue-800"
                     )}
                 >
                     {label}
-                    {required && <span className="text-destructive ml-1">*</span>}
+                    {required && <span className="text-red-500 ml-1">*</span>}
                 </label>
             )}
             <div className="relative">
@@ -145,9 +150,11 @@ const Select = React.forwardRef(({
                     id={selectId}
                     type="button"
                     className={cn(
-                        "flex h-10 w-full items-center justify-between rounded-md border border-input bg-white text-black px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-                        error && "border-destructive focus:ring-destructive",
-                        !hasValue && "text-muted-foreground"
+                        "flex w-full items-center justify-between rounded-md border bg-white text-black px-3 py-2 ring-offset-background placeholder:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50",
+                        "text-base", // Base text size
+                        error ? "border-red-400 focus:ring-red-500" : "border-blue-300 focus:ring-blue-500",
+                        !hasValue && "text-blue-500",
+                        inputClassName
                     )}
                     onClick={handleToggle}
                     disabled={disabled}
@@ -159,7 +166,7 @@ const Select = React.forwardRef(({
 
                     <div className="flex items-center gap-1">
                         {loading && (
-                            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                            <svg className="animate-spin h-5 w-5 text-blue-500" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                             </svg>
@@ -169,14 +176,17 @@ const Select = React.forwardRef(({
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-4 w-4"
+                                className="h-5 w-5 hover:bg-blue-100 text-blue-500 hover:text-blue-700"
                                 onClick={handleClear}
                             >
-                                <X className="h-3 w-3" />
+                                <X className="h-4 w-4" />
                             </Button>
                         )}
 
-                        <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
+                        <ChevronDown className={cn(
+                            "h-5 w-5 transition-transform text-blue-500",
+                            isOpen && "rotate-180"
+                        )} />
                     </div>
                 </button>
 
@@ -200,16 +210,24 @@ const Select = React.forwardRef(({
 
                 {/* Dropdown */}
                 {isOpen && (
-                    <div className="absolute z-50 w-full mt-1 bg-white text-black border border-border rounded-md shadow-md max-h-60 overflow-y-auto">
+                    <div className={cn(
+                        "absolute z-50 w-full mt-1 bg-white text-black border rounded-md shadow-lg max-h-60 overflow-y-auto",
+                        "border-blue-300 shadow-blue-100",
+                        dropdownClassName
+                    )}>
                         {searchable && (
-                            <div className="p-2 border-b">
+                            <div className="p-2 border-b border-blue-100 bg-blue-50">
                                 <div className="relative">
-                                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                    <Search className="absolute left-2 top-2.5 h-5 w-5 text-blue-500" />
                                     <Input
                                         placeholder="Search options..."
                                         value={internalSearchTerm}
                                         onChange={handleSearchInputChange}
-                                        className="pl-8"
+                                        className={cn(
+                                            "pl-10 bg-white border-blue-300 text-blue-900 placeholder-blue-400",
+                                            "focus:border-blue-500 focus:ring-blue-500 text-base",
+                                            "h-10" // Taller input for better touch targets
+                                        )}
                                         autoFocus
                                     />
                                 </div>
@@ -218,7 +236,7 @@ const Select = React.forwardRef(({
 
                         <div className="py-1">
                             {filteredOptions?.length === 0 ? (
-                                <div className="px-3 py-2 text-sm text-muted-foreground">
+                                <div className="px-3 py-3 text-base text-blue-500">
                                     {internalSearchTerm ? 'No options found' : 'No options available'}
                                 </div>
                             ) : (
@@ -226,9 +244,11 @@ const Select = React.forwardRef(({
                                     <div
                                         key={option?.value}
                                         className={cn(
-                                            "relative flex cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
-                                            isSelected(option?.value) && "bg-primary text-primary-foreground",
-                                            option?.disabled && "pointer-events-none opacity-50"
+                                            "relative flex cursor-pointer select-none items-center rounded-sm px-3 py-3 text-base outline-none",
+                                            "hover:bg-blue-50 hover:text-blue-900",
+                                            isSelected(option?.value) && "bg-blue-100 text-blue-900",
+                                            option?.disabled && "pointer-events-none opacity-50",
+                                            optionClassName
                                         )}
                                         onClick={() => !option?.disabled && handleOptionSelect(option)}
                                     >
@@ -236,12 +256,12 @@ const Select = React.forwardRef(({
                                             renderOption(option)
                                         ) : (
                                             <>
-                                                <span className="flex-1">{option?.label}</span>
+                                                <span className="flex-1 text-base">{option?.label}</span>
                                                 {multiple && isSelected(option?.value) && (
-                                                    <Check className="h-4 w-4" />
+                                                    <Check className="h-5 w-5 text-blue-600" />
                                                 )}
                                                 {option?.description && (
-                                                    <span className="text-xs text-muted-foreground ml-2">
+                                                    <span className="text-sm text-blue-600 ml-2">
                                                         {option?.description}
                                                     </span>
                                                 )}
@@ -255,12 +275,12 @@ const Select = React.forwardRef(({
                 )}
             </div>
             {description && !error && (
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm text-blue-600 mt-1">
                     {description}
                 </p>
             )}
             {error && (
-                <p className="text-sm text-destructive mt-1">
+                <p className="text-sm text-red-600 mt-1">
                     {error}
                 </p>
             )}

@@ -16,7 +16,6 @@ const LevelConfiguration = ({
   const levelDifference = targetLevel - currentLevel;
   const isPalingenesis = targetLevel > 90;
   
-  // Handle click on current ascension pips
   const handleCurrentAscensionClick = (pipNumber) => {
     if (pipNumber === currentAscension) {
       onCurrentAscensionChange(Math.max(0, pipNumber - 1));
@@ -25,7 +24,6 @@ const LevelConfiguration = ({
     }
   };
 
-  // Handle click on target ascension pips
   const handleTargetAscensionClick = (pipNumber) => {
     if (pipNumber === targetAscension) {
       onTargetAscensionChange(Math.max(0, pipNumber - 1));
@@ -34,7 +32,6 @@ const LevelConfiguration = ({
     }
   };
 
-  // Ascension Pips helper
   const renderPips = (count, isTarget = false) => {
     const handleClick = isTarget ? handleTargetAscensionClick : handleCurrentAscensionClick;
     
@@ -50,9 +47,9 @@ const LevelConfiguration = ({
                 ? `${
                     isTarget 
                       ? 'bg-gradient-to-br from-blue-500 to-blue-600 border-blue-700 shadow-md hover:shadow-lg' 
-                      : 'bg-gradient-to-br from-slate-500 to-slate-600 border-slate-700 shadow-md hover:shadow-lg'
+                      : 'bg-gradient-to-br from-blue-400 to-blue-500 border-blue-600 shadow-md hover:shadow-lg'
                   } transform hover:scale-110 active:scale-95` 
-                : 'bg-white border-slate-300 hover:border-slate-400 hover:bg-slate-50'
+                : 'bg-white border-blue-200 hover:border-blue-300 hover:bg-blue-50'
             } ${i === 0 ? 'invisible' : ''} cursor-pointer`}
             aria-label={`${isTarget ? 'Target' : 'Current'} Ascension Phase ${i}`}
           />
@@ -62,102 +59,106 @@ const LevelConfiguration = ({
   };
 
   return (
-    <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
-      {/* Header */}
-      <div className="px-4 sm:px-5 py-4 border-b border-slate-100 bg-white">
-        <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
-              <Icon name="TrendingUp" size={16} className="text-white" />
-            </div>
-            <h2 className="text-base sm:text-lg font-semibold text-slate-800">Level & Ascension</h2>
+    <div className="bg-white rounded-lg sm:rounded-xl border border-blue-100 shadow-sm sm:shadow-xl overflow-hidden transition-all duration-300">
+      <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-blue-100 bg-blue-700 flex justify-between items-center">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="p-1.5 sm:p-2 bg-blue-600 rounded-md sm:rounded-lg shadow-blue-200 shadow-md sm:shadow-lg">
+            <Icon name="TrendingUp" size={14} sm:size={18} className="text-white" />
           </div>
-          {isPalingenesis && (
-            <span className="text-xs text-blue-600 font-medium">
-              Palingenesis
-            </span>
-          )}
+          <div>
+            <h2 className="text-xl sm:text-xl font-bold sm:font-black uppercase tracking-wide sm:tracking-[0.2em] text-blue-100">
+              Level & Ascension
+            </h2>
+          </div>
         </div>
+        {isPalingenesis && (
+          <div className="flex items-center gap-1 sm:gap-2 text-[8px] sm:text-[10px] font-medium sm:font-black text-blue-300 animate-pulse">
+            <Icon name="Zap" size={10} sm:size={12} />
+            <span className="hidden sm:inline">PALINGENESIS</span>
+            <span className="sm:hidden">PAL</span>
+          </div>
+        )}
       </div>
 
-      <div className="p-4 sm:p-5 space-y-6 sm:space-y-8">
-        {/* Level Section */}
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-700 mb-2">Servant Level</h3>
-              <div className="flex items-center gap-2">
-                <span className="text-lg sm:text-xl font-semibold text-slate-800">{currentLevel}</span>
-                <Icon name="ArrowRight" size={14} className="text-slate-400" />
-                <span className="text-lg sm:text-xl font-semibold text-blue-600">{targetLevel}</span>
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 bg-blue-50/30">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-2 sm:space-y-3">
+            <h3 className="text-lg sm:text-xl font-bold sm:font-black text-blue-900 tracking-tight">
+              Servant Level
+            </h3>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <span className="text-2xl sm:text-3xl font-black text-blue-600">{currentLevel}</span>
+                <Icon name="ArrowRight" size={20} sm:size={24} className="text-blue-400" />
+                <span className="text-2xl sm:text-3xl font-black text-blue-700">{targetLevel}</span>
               </div>
+              {levelDifference > 0 && (
+                <div className="text-sm sm:text-base font-bold text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
+                  +{levelDifference}
+                </div>
+              )}
             </div>
-            
           </div>
 
-          {/* Level Inputs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <label className="block text-sm sm:text-md font-semibold text-slate-600 mb-1">Current :</label>
+            <div className="space-y-1 sm:space-y-2">
+              <label className="block text-sm sm:text-base font-bold text-blue-700">Current :</label>
               <input
                 type="number"
                 min="1"
                 max={maxLevel}
                 value={currentLevel}
                 onChange={(e) => onCurrentLevelChange(parseInt(e.target.value) || 1)}
-                className="w-full px-3 py-2 text-sm sm:text-base border border-slate-300 rounded focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-center"
+                className="w-full px-4 py-3 text-sm sm:text-base border border-blue-200 rounded-lg sm:rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 text-center font-bold text-blue-900 bg-white"
               />
             </div>
-            <div>
-              <label className="block text-sm sm:text-md font-semibold text-slate-600 mb-1">Target :</label>
+            <div className="space-y-1 sm:space-y-2">
+              <label className="block text-sm sm:text-base font-bold text-blue-700">Target :</label>
               <input
                 type="number"
                 min="1"
                 max={120}
                 value={targetLevel}
                 onChange={(e) => onTargetLevelChange(parseInt(e.target.value) || 1)}
-                className={`w-full px-3 py-2 text-sm sm:text-base border rounded focus:outline-none focus:ring-1 text-center ${
+                className={`w-full px-4 py-3 text-sm sm:text-base border rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 text-center font-bold ${
                   isPalingenesis 
-                    ? 'border-blue-300 bg-blue-50 focus:border-blue-500 focus:ring-blue-500 text-blue-700' 
-                    : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500'
+                    ? 'border-blue-300 bg-blue-100/50 focus:border-blue-500 focus:ring-blue-500/30 text-blue-800' 
+                    : 'border-blue-200 focus:border-blue-500 focus:ring-blue-500/30 text-blue-900 bg-white'
                 }`}
               />
             </div>
           </div>
         </div>
 
-        {/* Ascension Section */}
-        <div className="pt-6 border-t border-slate-100 space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold text-slate-700 mb-4">Ascension Rank</h3>
-            
-            {/* Current Ascension Pips */}
-            <div className="space-y-3 mb-6">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="text-center flex-1">
-                  <div className="flex justify-center">
-                    {renderPips(currentAscension, false)}
-                  </div>
-                  <div className="text-sm font-medium text-slate-700 mt-2">
-                    Current: <span className="font-bold">{currentAscension}/4</span>
-                  </div>
+        <div className="pt-4 sm:pt-6 border-t border-blue-100 space-y-4 sm:space-y-6">
+          <h3 className="text-lg sm:text-xl font-bold sm:font-black text-blue-900 tracking-tight">
+            Ascension Rank
+          </h3>
+          
+          <div className="space-y-4 sm:space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="text-center flex-1 space-y-2">
+                <div className="flex justify-center">
+                  {renderPips(currentAscension, false)}
                 </div>
-                
-                <div className="hidden md:block">
-                  <Icon name="ArrowRight" size={16} className="text-slate-400" />
+                <div className="text-sm font-bold text-blue-700">
+                  Current: <span className="font-black">{currentAscension}/4</span>
                 </div>
-                <div className="md:hidden">
-                  <Icon name="ArrowDown" size={16} className="text-slate-400 mx-auto" />
+              </div>
+              
+              <div className="hidden md:block">
+                <Icon name="ArrowRight" size={20} className="text-blue-400" />
+              </div>
+              <div className="md:hidden">
+                <Icon name="ArrowDown" size={20} className="text-blue-400 mx-auto" />
+              </div>
+              
+              <div className="text-center flex-1 space-y-2">
+                <div className="flex justify-center">
+                  {renderPips(targetAscension, true)}
                 </div>
-                
-                {/* Target Ascension Pips */}
-                <div className="text-center flex-1">
-                  <div className="flex justify-center">
-                    {renderPips(targetAscension, true)}
-                  </div>
-                  <div className="text-sm font-medium text-blue-600 mt-2">
-                    Target: <span className="font-bold">{targetAscension}/4</span>
-                  </div>
+                <div className="text-sm font-bold text-blue-800">
+                  Target: <span className="font-black">{targetAscension}/4</span>
                 </div>
               </div>
             </div>

@@ -132,12 +132,29 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
   return (
     <div className="bg-white rounded-xl border border-blue-100">
       {/* Header - Desktop */}
-      <div className="p-6 border-b border-blue-100 bg-gradient-to-r from-blue-50 to-blue-50/50 hidden md:block">
-        <div className="flex items-center justify-between">
+      <div className="p-6 rounded-lg border-blue-100 bg-blue-700 flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            {/* Simple box frame */}
+            <div className="absolute -inset-[2px] bg-blue-100 rounded-xl 
+              shadow-sm
+              border-[2px] border-blue-300"></div>
+            
+            {/* Simple recessed area */}
+            <div className="absolute inset-0 bg-blue-700 rounded-lg 
+              border border-blue-900/50"></div>
+            
+            {/* Simple icon container */}
+            <div className="relative p-2 rounded-md bg-blue-600">
+              <Icon name="Package" size={18} className="text-white" />
+            </div>
+          </div>
           <div>
-            <h2 className="text-xl font-semibold text-blue-900 tracking-tight">Material Requirements</h2>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-sm text-blue-600 font-medium">
+            <h2 className="text-xl font-bold uppercase tracking-[0.2em] text-blue-100">
+              Material Requirements
+            </h2>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-sm text-blue-300 font-medium">
                 {mergedMaterials.length} materials needed
               </span>
             </div>
@@ -146,10 +163,18 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
       </div>
 
       {/* Header - Mobile */}
-      <div className="p-4 border-b border-blue-100 bg-gradient-to-r from-blue-50 to-blue-50/50 md:hidden">
+      <div className="p-4 border-b border-blue-100 bg-blue-700 md:hidden">
         <div className="flex flex-col items-center text-center">
-          <h2 className="text-lg font-semibold text-blue-900">Materials Needed</h2>
-          <p className="text-sm text-blue-600 mt-1 font-medium">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="relative">
+              <div className="absolute -inset-[1px] bg-blue-100 rounded-lg border border-blue-300"></div>
+              <div className="relative p-1.5 rounded bg-blue-600">
+                <Icon name="Package" size={14} className="text-white" />
+              </div>
+            </div>
+            <h2 className="text-lg font-bold text-blue-100">Materials Needed</h2>
+          </div>
+          <p className="text-sm text-blue-300 font-medium">
             {mergedMaterials.length} materials required
           </p>
         </div>
@@ -159,11 +184,11 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
       <div className="overflow-x-auto hidden md:block">
         <div className="min-w-full">
           {/* Table Header - Desktop */}
-          <div className="grid grid-cols-12 bg-blue-50 border-b border-blue-100">
-            <div className="col-span-5 p-4 text-sm font-semibold text-blue-700 uppercase tracking-wide">Material</div>
-            <div className="col-span-2 p-4 text-sm font-semibold text-blue-700 uppercase tracking-wide text-center">Required</div>
-            <div className="col-span-2 p-4 text-sm font-semibold text-blue-700 uppercase tracking-wide text-center">Current</div>
-            <div className="col-span-3 p-4 text-sm font-semibold text-blue-700 uppercase tracking-wide text-center">Status</div>
+          <div className="grid grid-cols-12 bg-blue-100 border-b border-blue-200">
+            <div className="col-span-5 p-4 text-sm font-bold text-blue-700 uppercase tracking-wide">Material</div>
+            <div className="col-span-2 p-4 text-sm font-bold text-blue-700 uppercase tracking-wide text-center">Required</div>
+            <div className="col-span-2 p-4 text-sm font-bold text-blue-700 uppercase tracking-wide text-center">Current</div>
+            <div className="col-span-3 p-4 text-sm font-bold text-blue-700 uppercase tracking-wide text-center">Status</div>
           </div>
 
           {/* Table Body - Desktop */}
@@ -187,9 +212,9 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
                       />
                     </div>
                     <div className="min-w-0">
-                      <p className="font-medium text-blue-900 truncate">{material.name}</p>
+                      <p className="font-bold text-blue-900 truncate">{material.name}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-blue-600 font-medium">{material.rarity}</span>
+                        <span className="text-xs font-bold text-blue-500">{material.rarity}</span>
                       </div>
                     </div>
                   </div>
@@ -197,12 +222,12 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
 
                 {/* Required - Desktop */}
                 <div className="col-span-2 p-4 flex items-center justify-center">
-                  <span className="font-semibold text-blue-900">{material.required.toLocaleString()}</span>
+                  <span className="font-bold text-blue-900">{material.required.toLocaleString()}</span>
                 </div>
 
                 {/* Current - Desktop */}
                 <div className="col-span-2 p-4 flex items-center justify-center">
-                  <span className="text-blue-600">{material.current.toLocaleString()}</span>
+                  <span className="font-bold text-blue-600">{material.current.toLocaleString()}</span>
                 </div>
 
                 {/* Status - Desktop */}
@@ -213,7 +238,7 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
                       size={14} 
                       className={getStatusColor(material.deficit)}
                     />
-                    <span className={`font-medium text-sm ${getStatusColor(material.deficit)}`}>
+                    <span className={`font-bold text-sm ${getStatusColor(material.deficit)}`}>
                       {material.deficit > 0 ? `${material.deficit.toLocaleString()} needed` : 'Complete'}
                     </span>
                   </div>
@@ -243,9 +268,9 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-blue-900 truncate">{material.name}</p>
+                    <p className="font-bold text-blue-900 truncate">{material.name}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-blue-600 font-medium">{material.rarity}</span>
+                      <span className="text-xs font-bold text-blue-500">{material.rarity}</span>
                     </div>
                   </div>
                 </div>
@@ -257,7 +282,7 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
                     size={14} 
                     className={getStatusColor(material.deficit)}
                   />
-                  <span className={`font-medium text-sm ${getStatusColor(material.deficit)}`}>
+                  <span className={`font-bold text-sm ${getStatusColor(material.deficit)}`}>
                     {material.deficit > 0 ? material.deficit.toLocaleString() : 0}
                   </span>
                 </div>
@@ -265,13 +290,13 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
 
               {/* Stats Row - Mobile */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="text-xs text-blue-600 font-medium mb-1">Required</div>
-                  <div className="font-semibold text-blue-900 text-lg">{material.required.toLocaleString()}</div>
+                <div className="text-center p-3 bg-blue-100 rounded-lg border border-blue-200">
+                  <div className="text-xs font-bold text-blue-700 mb-1">Required</div>
+                  <div className="font-bold text-blue-900 text-lg">{material.required.toLocaleString()}</div>
                 </div>
-                <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="text-xs text-blue-600 font-medium mb-1">Current</div>
-                  <div className="font-medium text-blue-700 text-lg">{material.current.toLocaleString()}</div>
+                <div className="text-center p-3 bg-blue-100 rounded-lg border border-blue-200">
+                  <div className="text-xs font-bold text-blue-700 mb-1">Current</div>
+                  <div className="font-bold text-blue-600 text-lg">{material.current.toLocaleString()}</div>
                 </div>
               </div>
             </div>
