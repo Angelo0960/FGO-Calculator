@@ -552,16 +552,16 @@ const Inventory = ({
     }, [material.id, editingInputId, handleInputBlur]);
 
     return (
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 hover:shadow-md transition-shadow">
+      <div className="bg-white rounded-lg border border-blue-100 shadow-sm p-4 hover:shadow-md transition-shadow hover:border-blue-200">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">
+            <div className="w-12 h-12 rounded-lg bg-blue-50 border border-blue-100 overflow-hidden flex-shrink-0">
               <img 
                 src={material.icon} 
                 alt={material.iconAlt}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  e.target.src = "https://placehold.co/48x48/ccc/fff?text=?";
+                  e.target.src = "https://placehold.co/48x48/3b82f6/fff?text=?";
                 }}
               />
             </div>
@@ -569,15 +569,16 @@ const Inventory = ({
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-lg mt-2 font-semibold text-slate-900 truncate">{material.name}</h3>
+                    <h3 className="text-lg font-semibold text-slate-900 truncate">{material.name}</h3>
                   </div>
+                  <p className="text-sm text-blue-500">{material.category}</p>
                 </div>
                 
                 {/* Current quantity - aligned to the right */}
                 <div className="text-right ml-2 flex-shrink-0">
                   <div className="text-sm">
-                    <div className="text-slate-600 text-xs">Current</div>
-                    <span className="font-semibold text-slate-900 text-lg">{currentValue.toLocaleString()}</span>
+                    <div className="text-blue-400 text-xs">Current</div>
+                    <span className="font-semibold text-blue-600 text-lg">{currentValue.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -590,14 +591,14 @@ const Inventory = ({
           <div className="flex items-center gap-2 w-full justify-center">
             <button
               onClick={handleSubtract1}
-              className="w-8 h-8 rounded-lg border border-slate-300 hover:bg-slate-100 flex items-center justify-center transition-colors flex-shrink-0"
+              className="w-8 h-8 rounded-md border border-blue-200 hover:bg-blue-50 flex items-center justify-center transition-colors flex-shrink-0"
               aria-label="Subtract 1"
             >
-              <Icon name="Minus" size={14} className="text-slate-600" />
+              <Icon name="Minus" size={14} className="text-blue-500" />
             </button>
             <button
               onClick={handleSet0}
-              className="w-8 h-8 rounded-lg border border-slate-300 hover:bg-slate-100 flex items-center justify-center transition-colors text-xs font-medium flex-shrink-0"
+              className="w-8 h-8 rounded-md border border-blue-200 hover:bg-blue-50 flex items-center justify-center transition-colors text-xs font-medium flex-shrink-0 text-blue-500"
               aria-label="Set to 0"
             >
               0
@@ -612,12 +613,12 @@ const Inventory = ({
                 onBlur={handleInputBlurComplete}
                 onKeyDown={handleKeyDown}
                 onFocus={handleInputFocus}
-                className="w-full px-2 py-1 text-center border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 no-auto-scroll"
+                className="w-full px-2 py-1 text-center border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 no-auto-scroll text-blue-600"
               />
             </div>
             <button
               onClick={handleAdd1}
-              className="w-8 h-8 rounded-lg bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center border border-blue-600 transition-colors flex-shrink-0"
+              className="w-8 h-8 rounded-md bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center border border-blue-600 transition-colors flex-shrink-0"
               aria-label="Add 1"
             >
               <Icon name="Plus" size={14} />
@@ -626,14 +627,14 @@ const Inventory = ({
               <>
                 <button
                   onClick={handleAdd10}
-                  className="w-8 h-8 rounded-lg bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center border border-blue-600 transition-colors text-xs font-medium flex-shrink-0"
+                  className="w-8 h-8 rounded-md bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center border border-blue-600 transition-colors text-xs font-medium flex-shrink-0"
                   aria-label="Add 10"
                 >
                   +10
                 </button>
                 <button
                   onClick={handleAdd100}
-                  className="w-8 h-8 rounded-lg bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center border border-blue-600 transition-colors text-xs font-medium flex-shrink-0"
+                  className="w-8 h-8 rounded-md bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center border border-blue-600 transition-colors text-xs font-medium flex-shrink-0"
                   aria-label="Add 100"
                 >
                   +100
@@ -648,13 +649,13 @@ const Inventory = ({
           <div className="mt-3 flex gap-2">
             <button
               onClick={handleAdd10}
-              className="flex-1 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg text-sm font-medium transition-colors border border-blue-200"
+              className="flex-1 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-md text-sm font-medium transition-colors border border-blue-200"
             >
               +10
             </button>
             <button
               onClick={handleAdd100}
-              className="flex-1 py-1.5 bg-blue-500 text-white hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors border border-blue-600"
+              className="flex-1 py-1.5 bg-blue-500 text-white hover:bg-blue-600 rounded-md text-sm font-medium transition-colors border border-blue-600"
             >
               +100
             </button>
@@ -710,17 +711,17 @@ const Inventory = ({
       
       <div 
         id="inventory-section"
-        className="bg-white rounded-xl border border-slate-200 shadow-lg inventory-container"
+        className="bg-white rounded-lg border border-blue-100 shadow-md inventory-container"
       >
         {/* Materials Grid (Cards for both mobile and desktop) */}
-        <div className="p-3 md:p-6">
+        <div className="p-3 md:p-6 bg-blue-50">
           {filteredMaterials.length === 0 ? (
             <div className="p-8 text-center">
               <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center border border-blue-200">
                 <Icon name="Package" size={24} className="text-blue-500" />
               </div>
               <h3 className="text-lg font-semibold text-slate-900 mb-2">No Materials Found</h3>
-              <p className="text-slate-600">
+              <p className="text-blue-500">
                 {searchTerm 
                   ? 'Try adjusting your search term'
                   : 'Start by calculating material requirements for a servant'}
@@ -736,7 +737,7 @@ const Inventory = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-3 md:p-4 border-t border-slate-200 bg-slate-50">
+        <div className="p-3 md:p-4 border-t border-blue-100 bg-blue-50">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-wrap gap-2 md:gap-4">
               <Button
@@ -753,14 +754,32 @@ const Inventory = ({
                 iconName="Trash2"
                 onClick={handleClearInventory}
                 size="sm"
-                className="flex-1 md:flex-none text-red-600 border-red-300 hover:bg-red-50"
+                className="flex-1 md:flex-none text-blue-600 border-blue-300 hover:bg-blue-50"
               >
                 {isMobileView ? 'Clear' : 'Clear All'}
               </Button>
+              <Button
+                variant="outline"
+                iconName="Upload"
+                onClick={() => setShowImportModal(true)}
+                size="sm"
+                className="flex-1 md:flex-none border-blue-300 text-blue-600 hover:bg-blue-50"
+              >
+                {isMobileView ? 'Import' : 'Import'}
+              </Button>
+              <Button
+                variant="outline"
+                iconName="Download"
+                onClick={() => setShowExportModal(true)}
+                size="sm"
+                className="flex-1 md:flex-none border-blue-300 text-blue-600 hover:bg-blue-50"
+              >
+                {isMobileView ? 'Export' : 'Export'}
+              </Button>
             </div>
-            <div className="text-xs md:text-sm text-blue-600 text-center md:text-right">
+            <div className="text-xs md:text-sm text-blue-500 text-center md:text-right">
               Showing {filteredMaterials.length} materials
-              <span className="text-blue-500 ml-2">
+              <span className="text-blue-400 ml-2">
                 ({Object.keys(inventory).length} in inventory • {materials.length} from current servant)
               </span>
             </div>
@@ -770,11 +789,11 @@ const Inventory = ({
         {/* Mobile Edit Modal */}
         {isMobileView && activeMaterial && (
           <div className="fixed inset-0 bg-black/50 flex items-end justify-center p-4 z-50">
-            <div className="bg-white rounded-t-2xl w-full max-w-md">
-              <div className="p-4 border-b border-slate-200">
+            <div className="bg-white rounded-t-lg w-full max-w-md">
+              <div className="p-4 border-b border-blue-100">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden">
+                    <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 overflow-hidden">
                       <img 
                         src={activeMaterial.icon} 
                         alt={activeMaterial.iconAlt}
@@ -783,7 +802,7 @@ const Inventory = ({
                     </div>
                     <div>
                       <h3 className="font-semibold text-slate-900">Edit {activeMaterial.name}</h3>
-                      <p className="text-xs text-slate-500">ID: {activeMaterial.id}</p>
+                      <p className="text-xs text-blue-400">ID: {activeMaterial.id}</p>
                     </div>
                   </div>
                   <button
@@ -791,15 +810,15 @@ const Inventory = ({
                       setActiveMaterial(null);
                       setEditQuantity('');
                     }}
-                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                    className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
                   >
-                    <Icon name="X" size={20} className="text-slate-500" />
+                    <Icon name="X" size={20} className="text-blue-500" />
                   </button>
                 </div>
               </div>
               <div className="p-4">
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Quantity</label>
+                  <label className="block text-sm font-medium text-blue-500 mb-2">Quantity</label>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -811,13 +830,13 @@ const Inventory = ({
                         setEditQuantity(value);
                       }
                     }}
-                    className="w-full px-3 py-3 border border-slate-300 rounded-lg text-center text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-3 border border-blue-200 rounded-lg text-center text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 text-blue-600"
                   />
                 </div>
                 <div className="grid grid-cols-4 gap-2 mb-4">
                   <button
                     onClick={() => setEditQuantity('0')}
-                    className="py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium transition-colors"
+                    className="py-2 bg-blue-50 hover:bg-blue-100 rounded-lg text-sm font-medium transition-colors text-blue-600 border border-blue-200"
                   >
                     Set 0
                   </button>
@@ -826,7 +845,7 @@ const Inventory = ({
                       const current = parseInt(editQuantity) || 0;
                       setEditQuantity(String(current + 10));
                     }}
-                    className="py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg text-sm font-medium transition-colors"
+                    className="py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg text-sm font-medium transition-colors border border-blue-200"
                   >
                     +10
                   </button>
@@ -835,7 +854,7 @@ const Inventory = ({
                       const current = parseInt(editQuantity) || 0;
                       setEditQuantity(String(current + 100));
                     }}
-                    className="py-2 bg-blue-500 text-white hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors"
+                    className="py-2 bg-blue-500 text-white hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors border border-blue-600"
                   >
                     +100
                   </button>
@@ -844,7 +863,7 @@ const Inventory = ({
                       const current = parseInt(editQuantity) || 0;
                       setEditQuantity(String(Math.max(0, current - 1)));
                     }}
-                    className="py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg text-sm font-medium transition-colors"
+                    className="py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-sm font-medium transition-colors border border-blue-200"
                   >
                     -1
                   </button>
@@ -857,7 +876,7 @@ const Inventory = ({
                       setEditQuantity('');
                     }}
                     fullWidth
-                    className="border-slate-300 text-slate-700 hover:bg-slate-50"
+                    className="border-blue-200 text-blue-600 hover:bg-blue-50"
                   >
                     Cancel
                   </Button>
@@ -878,10 +897,10 @@ const Inventory = ({
         {/* Import Modal */}
         {showImportModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-hidden">
-              <div className="p-4 md:p-6 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-blue-100/50">
+            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-hidden">
+              <div className="p-4 md:p-6 border-b border-blue-100 bg-blue-50">
                 <h3 className="text-lg font-semibold text-slate-900">Import Inventory</h3>
-                <p className="text-sm text-slate-600 mt-1">
+                <p className="text-sm text-blue-500 mt-1">
                   Paste your inventory JSON data below
                 </p>
               </div>
@@ -890,15 +909,15 @@ const Inventory = ({
                   value={importData}
                   onChange={(e) => setImportData(e.target.value)}
                   placeholder='{"qp": 1000000, "ember-silver": 50, ...}'
-                  className="w-full h-32 md:h-48 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                  className="w-full h-32 md:h-48 px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 font-mono text-sm"
                 />
                 {importError && (
-                  <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-red-600 text-sm">{importError}</p>
+                  <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-blue-600 text-sm">{importError}</p>
                   </div>
                 )}
               </div>
-              <div className="p-4 md:p-6 border-t border-slate-200 flex flex-col sm:flex-row justify-end gap-3">
+              <div className="p-4 md:p-6 border-t border-blue-100 flex flex-col sm:flex-row justify-end gap-3">
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -906,7 +925,7 @@ const Inventory = ({
                     setImportData('');
                     setImportError('');
                   }}
-                  className="flex-1 sm:flex-none border-slate-300 text-slate-700 hover:bg-slate-50"
+                  className="flex-1 sm:flex-none border-blue-200 text-blue-600 hover:bg-blue-50"
                 >
                   Cancel
                 </Button>
@@ -926,31 +945,31 @@ const Inventory = ({
         {/* Export Modal */}
         {showExportModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl max-w-md w-full">
-              <div className="p-4 md:p-6 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-blue-100/50">
+            <div className="bg-white rounded-lg max-w-md w-full">
+              <div className="p-4 md:p-6 border-b border-blue-100 bg-blue-50">
                 <h3 className="text-lg font-semibold text-slate-900">Export Inventory</h3>
-                <p className="text-sm text-slate-600 mt-1">
+                <p className="text-sm text-blue-500 mt-1">
                   Your inventory data will be downloaded as a JSON file
                 </p>
               </div>
               <div className="p-4 md:p-6">
                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                  <p className="text-sm text-blue-700 mb-2">Export Summary:</p>
-                  <div className="space-y-1 text-sm text-blue-600">
+                  <p className="text-sm text-blue-600 mb-2">Export Summary:</p>
+                  <div className="space-y-1 text-sm text-blue-500">
                     <p>• {totals.totalItems} unique materials</p>
                     <p>• {totals.totalQuantity.toLocaleString()} total items</p>
                     <p>• {Object.keys(totals.categories).length} categories</p>
-                    <p className="text-blue-500">
+                    <p className="text-blue-400">
                       • Inventory persists across servant changes
                     </p>
                   </div>
                 </div>
               </div>
-              <div className="p-4 md:p-6 border-t border-slate-200 flex flex-col sm:flex-row justify-end gap-3">
+              <div className="p-4 md:p-6 border-t border-blue-100 flex flex-col sm:flex-row justify-end gap-3">
                 <Button
                   variant="outline"
                   onClick={() => setShowExportModal(false)}
-                  className="flex-1 sm:flex-none border-slate-300 text-slate-700 hover:bg-slate-50"
+                  className="flex-1 sm:flex-none border-blue-200 text-blue-600 hover:bg-blue-50"
                 >
                   Cancel
                 </Button>

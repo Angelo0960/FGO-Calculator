@@ -41,6 +41,43 @@ const MaterialResultsCards = ({ materials, onInventoryUpdate, onExport, hasCalcu
     return chunks.join('\n');
   };
 
+  // Function to format large numbers with K/M abbreviations
+  const formatLargeNumber = (number) => {
+    if (number === undefined || number === null) return '0';
+    
+    const num = Number(number);
+    if (isNaN(num)) return '0';
+    
+    // Handle very large numbers (millions)
+    if (num >= 1000000) {
+      const millions = num / 1000000;
+      // Show 1 decimal place for numbers between 1M and 10M, otherwise no decimals
+      if (millions < 10) {
+        return `${millions.toFixed(1)}M`;
+      }
+      return `${Math.round(millions)}M`;
+    }
+    
+    // Handle thousands
+    if (num >= 10000) {
+      const thousands = num / 1000;
+      // Show no decimals for thousands
+      return `${Math.round(thousands)}K`;
+    }
+    
+    if (num >= 1000) {
+      const thousands = num / 1000;
+      // Show 1 decimal place for numbers between 1K and 10K
+      if (thousands < 10) {
+        return `${thousands.toFixed(1)}K`;
+      }
+      return `${Math.round(thousands)}K`;
+    }
+    
+    // For numbers less than 1000, just return the number
+    return num.toString();
+  };
+
   // Empty state
   if (!hasCalculated || !selectedServant) {
     return (
@@ -140,21 +177,34 @@ const MaterialResultsCards = ({ materials, onInventoryUpdate, onExport, hasCalcu
                     </div>
                   </div>
                   
-                  {/* Material Stats */}
+                  {/* Material Stats - Fixed overflow for large numbers */}
                   <div className="space-y-3">
                     <div className="grid grid-cols-3 gap-3">
-                      <div className="text-center p-2 bg-blue-50 rounded border border-blue-100">
-                        <div className="text-xs font-medium text-blue-600 mb-1">Required</div>
-                        <div className="font-bold text-blue-900 text-lg">{material?.required?.toLocaleString()}</div>
+                      <div className="text-center p-2 bg-blue-50 rounded border border-blue-100 overflow-hidden">
+                        <div className="text-xs font-medium text-blue-600 mb-1 truncate px-1">Required</div>
+                        <div 
+                          className="font-bold text-blue-900 text-lg truncate px-1" 
+                          title={material?.required?.toLocaleString()}
+                        >
+                          {formatLargeNumber(material?.required)}
+                        </div>
                       </div>
-                      <div className="text-center p-2 bg-blue-50 rounded border border-blue-100">
-                        <div className="text-xs font-medium text-blue-600 mb-1">Current</div>
-                        <div className="font-medium text-blue-700 text-lg">{material?.current?.toLocaleString()}</div>
+                      <div className="text-center p-2 bg-blue-50 rounded border border-blue-100 overflow-hidden">
+                        <div className="text-xs font-medium text-blue-600 mb-1 truncate px-1">Current</div>
+                        <div 
+                          className="font-medium text-blue-700 text-lg truncate px-1" 
+                          title={material?.current?.toLocaleString()}
+                        >
+                          {formatLargeNumber(material?.current)}
+                        </div>
                       </div>
-                      <div className="text-center p-2 bg-blue-50 rounded border border-blue-100">
-                        <div className="text-xs font-medium text-blue-600 mb-1">Deficit</div>
-                        <div className={`font-bold text-lg ${getStatusColor(material?.deficit)}`}>
-                          {material?.deficit > 0 ? material?.deficit?.toLocaleString() : 0}
+                      <div className="text-center p-2 bg-blue-50 rounded border border-blue-100 overflow-hidden">
+                        <div className="text-xs font-medium text-blue-600 mb-1 truncate px-1">Deficit</div>
+                        <div 
+                          className={`font-bold text-lg truncate px-1 ${getStatusColor(material?.deficit)}`}
+                          title={material?.deficit > 0 ? material?.deficit?.toLocaleString() : '0'}
+                        >
+                          {material?.deficit > 0 ? formatLargeNumber(material?.deficit) : 0}
                         </div>
                       </div>
                     </div>

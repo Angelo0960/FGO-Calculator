@@ -14,6 +14,66 @@ const FarmingOptimizer = ({
   const [debugInfo, setDebugInfo] = useState('Click a material to start');
   const [itemImages, setItemImages] = useState({}); // Store item name to image URL mapping
 
+  // Function to split long material names into multiple lines
+  const formatMaterialName = (name, maxWordsPerLine = 2) => {
+    if (!name) return { text: '', hasMultipleLines: false };
+    
+    const words = name.split(' ');
+    
+    if (words.length <= maxWordsPerLine) {
+      return { text: name, hasMultipleLines: false };
+    }
+    
+    // Split into chunks of maxWordsPerLine
+    const chunks = [];
+    for (let i = 0; i < words.length; i += maxWordsPerLine) {
+      chunks.push(words.slice(i, i + maxWordsPerLine).join(' '));
+    }
+    
+    return { text: chunks.join('\n'), hasMultipleLines: true };
+  };
+
+  // Function to format large numbers with K/M abbreviations for compact display
+  const formatLargeNumber = (number) => {
+    if (number === undefined || number === null) return '0';
+    
+    const num = Number(number);
+    if (isNaN(num)) return '0';
+    
+    // Handle very large numbers (millions)
+    if (num >= 1000000) {
+      const millions = num / 1000000;
+      // For very large numbers (≥ 100M), show without decimals
+      if (millions >= 100) {
+        return `${Math.round(millions)}M`;
+      }
+      // For medium large numbers (≥ 10M), show without decimals
+      if (millions >= 10) {
+        return `${Math.round(millions)}M`;
+      }
+      // For smaller millions, show 1 decimal
+      return `${millions.toFixed(1)}M`;
+    }
+    
+    // Handle thousands
+    if (num >= 10000) {
+      const thousands = num / 1000;
+      return `${Math.round(thousands)}K`;
+    }
+    
+    if (num >= 1000) {
+      const thousands = num / 1000;
+      // Show 1 decimal for numbers between 1K and 10K
+      if (thousands < 10) {
+        return `${thousands.toFixed(1)}K`;
+      }
+      return `${Math.round(thousands)}K`;
+    }
+    
+    // For numbers less than 1000, just return the number
+    return num.toString();
+  };
+
   // Merge materials by name, summing their deficits
   const mergedMaterials = useMemo(() => {
     if (!materials.length) return [];
@@ -319,7 +379,7 @@ const FarmingOptimizer = ({
         </div>
       </div>
 
-      {/* Materials Selection */}
+      {/* Materials Selection - Fixed width and height cards */}
       <div className="p-6">
         {materialsWithDeficit.length === 0 ? (
           <div className="text-center py-8">
@@ -342,42 +402,75 @@ const FarmingOptimizer = ({
         ) : (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {materialsWithDeficit.map(material => (
-                <button
-                  key={material.id || material.name}
-                  onClick={() => handleSelectMaterial(material)}
-                  disabled={searchStatus === 'searching'}
-                  className={`p-4 rounded-lg border transition-all duration-200 ${
-                    selectedMaterial?.name?.toLowerCase() === material.name?.toLowerCase()
-                      ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500 ring-opacity-20'
-                      : 'border-blue-100 hover:border-blue-300 hover:bg-blue-50'
-                  } ${searchStatus === 'searching' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-white border border-blue-200 overflow-hidden flex-shrink-0">
-                      <img 
-                        src={getItemImage(material)}
-                        alt={material.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.src = 'https://static.atlasacademy.io/NA/Items/99.png';
-                        }}
-                      />
-                    </div>
-                    <div className="text-left flex-1 min-w-0">
-                      <p className="font-medium text-blue-900 truncate">{material.name}</p>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-sm text-blue-700">
-                          Need <span className="font-bold text-blue-900 text-base">{material.deficit?.toLocaleString() || 0}</span>
-                        </span>
-                        <span className="text-xs text-blue-500 font-medium">
-                          {material.originalIds?.length > 1 ? `${material.originalIds.length} sources` : 'Select'}
-                        </span>
+              {materialsWithDeficit.map(material => {
+                const { text: formattedName, hasMultipleLines } = formatMaterialName(material.name, 2);
+                const isSelected = selectedMaterial?.name?.toLowerCase() === material.name?.toLowerCase();
+                const formattedDeficit = formatLargeNumber(material.deficit);
+                
+                return (
+                  <button
+                    key={material.id || material.name}
+                    onClick={() => handleSelectMaterial(material)}
+                    disabled={searchStatus === 'searching'}
+                    // Using a more compact layout without "Need" text
+                    className={`p-4 rounded-lg border transition-all duration-200 w-full min-h-[96px] ${
+                      isSelected
+                        ? 'border-blue-500 bg-blue-50 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.2)]'
+                        : 'border-blue-100 hover:border-blue-300 hover:bg-blue-50'
+                    } ${searchStatus === 'searching' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <div className="flex flex-col w-full h-full">
+                      <div className="flex items-center gap-4 mb-2 w-full flex-1">
+                        <div className="w-12 h-12 rounded-lg bg-white border border-blue-200 overflow-hidden flex-shrink-0">
+                          <img 
+                            src={getItemImage(material)}
+                            alt={material.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.src = 'https://static.atlasacademy.io/NA/Items/99.png';
+                            }}
+                          />
+                        </div>
+                        <div className="text-left flex-1 min-w-0 w-full">
+                          <div 
+                            className={`font-medium text-blue-900 w-full ${
+                              hasMultipleLines 
+                                ? 'whitespace-pre-line leading-tight line-clamp-2' 
+                                : 'truncate'
+                            }`}
+                            title={material.name}
+                          >
+                            {hasMultipleLines ? formattedName : material.name}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-auto w-full">
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-baseline gap-1 min-w-0 flex-1 overflow-hidden">
+                            {/* Compact layout: Just show the number without "Need" */}
+                            <span 
+                              className="font-bold text-blue-900 text-lg truncate min-w-0"
+                              title={`Need ${material.deficit?.toLocaleString() || '0'}`}
+                            >
+                              {formattedDeficit}
+                            </span>
+                            <span className="text-xs text-blue-600 flex-shrink-0">needed</span>
+                          </div>
+                          <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                            {isSelected && (
+                              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse flex-shrink-0"></div>
+                            )}
+                            <span className="text-xs text-blue-500 font-medium truncate flex-shrink-0">
+                              {material.originalIds?.length > 1 ? `${material.originalIds.length}s` : 'Select'}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -395,142 +488,150 @@ const FarmingOptimizer = ({
         </div>
       )}
 
-      {/* Results */}
-      <div className="p-6">
-        {selectedMaterial ? (
-          <>
-            {/* Selected Material Header */}
-            <div className="mb-8 p-5 bg-gradient-to-r from-blue-50 to-blue-50/50 rounded-xl border border-blue-200">
-              <div className="flex items-center gap-5">
-                <div className="w-20 h-20 rounded-xl bg-white border-2 border-blue-300 overflow-hidden flex-shrink-0">
-                  <img 
-                    src={getItemImage(selectedMaterial)}
-                    alt={selectedMaterial.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.src = 'https://static.atlasacademy.io/NA/Items/99.png';
-                    }}
-                  />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="text-xl font-semibold text-blue-900">
-                        Farming {selectedMaterial.name}
-                      </h3>
-                      {selectedMaterial.originalIds?.length > 1 && (
-                        <p className="text-sm text-blue-600 mt-1 font-medium">
-                          Combined from {selectedMaterial.originalIds.length} requirements
-                        </p>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <div className="text-3xl font-bold text-blue-700">
-                        {selectedMaterial.deficit?.toLocaleString() || 0}
-                      </div>
-                      <div className="text-sm text-blue-600 font-medium">Total needed</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Farming Spots */}
-            {searchStatus === 'searching' ? (
-              <div className="text-center py-10">
-                <div className="inline-block animate-spin rounded-full h-14 w-14 border-b-2 border-blue-500 mb-5"></div>
-                <h4 className="text-xl font-medium text-blue-900 mb-2">
-                  Finding Optimal Spots
-                </h4>
-                <p className="text-blue-600">
-                  Analyzing farming data for {selectedMaterial.name}...
-                </p>
-              </div>
-            ) : farmingSpots.length > 0 ? (
+      {/* Results Section - Fixed container that appears below */}
+      {selectedMaterial && (
+        <div className="border-t border-blue-100">
+          <div className="">
+            <div className="max-h-[600px] overflow-y-auto pr-2">
               <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-semibold text-blue-900 text-lg">
-                    Optimal Farming Spots
-                  </h4>
-                  <div className="text-sm text-blue-600">
-                    Ranked by efficiency • {farmingSpots[0]?.runs?.toLocaleString() || 0} total samples
-                  </div>
-                </div>
-                
-                {farmingSpots.map((spot, index) => (
-                  <div key={spot.id} className="bg-white rounded-xl border border-blue-200 overflow-hidden">
-                    {/* Spot Header */}
-                    <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm font-semibold">
-                            Rank #{spot.rank}
-                          </div>
-                          <div>
-                            <h5 className="font-semibold text-blue-900">{spot.area}</h5>
-                            <p className="text-sm text-blue-700 truncate">{spot.quest}</p>
-                          </div>
+                {/* Selected Material Header */}
+                <div className="p-5 bg-gradient-to-r from-blue-50 to-blue-50/50 rounded-xl border border-blue-200">
+                  <div className="flex items-center gap-5">
+                    <div className="w-20 h-20 rounded-xl bg-white border-2 border-blue-300 overflow-hidden flex-shrink-0">
+                      <img 
+                        src={getItemImage(selectedMaterial)}
+                        alt={selectedMaterial.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.src = 'https://static.atlasacademy.io/NA/Items/99.png';
+                        }}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <h3 className="text-xl font-semibold text-blue-900">
+                            Farming {selectedMaterial.name}
+                          </h3>
+                          {selectedMaterial.originalIds?.length > 1 && (
+                            <p className="text-sm text-blue-600 mt-1 font-medium">
+                              Combined from {selectedMaterial.originalIds.length} requirements
+                            </p>
+                          )}
                         </div>
                         <div className="text-right">
-                          <div className="text-2xl font-bold text-blue-700">AP: {spot.apCost}</div>
-                          <div className="text-xs text-blue-600 font-medium">
-                            {spot.runs?.toLocaleString() || 0} runs sampled
+                          <div className="text-3xl font-bold text-blue-700">
+                            {selectedMaterial.deficit?.toLocaleString() || 0}
                           </div>
+                          <div className="text-sm text-blue-600 font-medium">Total needed</div>
                         </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Farming Spots */}
+                {searchStatus === 'searching' ? (
+                  <div className="text-center py-10">
+                    <div className="inline-block animate-spin rounded-full h-14 w-14 border-b-2 border-blue-500 mb-5"></div>
+                    <h4 className="text-xl font-medium text-blue-900 mb-2">
+                      Finding Optimal Spots
+                    </h4>
+                    <p className="text-blue-600">
+                      Analyzing farming data for {selectedMaterial.name}...
+                    </p>
+                  </div>
+                ) : farmingSpots.length > 0 ? (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-blue-900 text-lg">
+                        Optimal Farming Spots
+                      </h4>
+                      <div className="text-sm text-blue-600">
+                        Ranked by efficiency • {farmingSpots[0]?.runs?.toLocaleString() || 0} total samples
                       </div>
                     </div>
                     
-                    {/* Metrics Grid */}
-                    <div className="p-4">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                          <div className="text-xs font-medium text-blue-700 mb-1">Drop Rate</div>
-                          <div className="text-xl font-bold text-blue-900">
-                            {spot.dropRate?.toFixed(1) || 0}%
+                    {farmingSpots.map((spot, index) => (
+                      <div key={spot.id} className="bg-white rounded-xl border border-blue-200 overflow-hidden">
+                        {/* Spot Header */}
+                        <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <div className="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm font-semibold">
+                                Rank #{spot.rank}
+                              </div>
+                              <div>
+                                <h5 className="font-semibold text-blue-900">{spot.area}</h5>
+                                <p className="text-sm text-blue-700 truncate">{spot.quest}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-blue-700">AP: {spot.apCost}</div>
+                              <div className="text-xs text-blue-600 font-medium">
+                                {spot.runs?.toLocaleString() || 0} runs sampled
+                              </div>
+                            </div>
                           </div>
                         </div>
                         
-                        <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                          <div className="text-xs font-medium text-blue-700 mb-1">AP per Drop</div>
-                          <div className="text-xl font-bold text-blue-900">
-                            {spot.apPerDrop?.toFixed(1) || 0}
-                          </div>
-                        </div>
-                        
-                        <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                          <div className="text-xs font-medium text-blue-700 mb-1">Runs for 1</div>
-                          <div className="text-xl font-bold text-blue-900">
-                            {spot.dropRate > 0 ? Math.ceil(100 / spot.dropRate) : '∞'}
-                          </div>
-                        </div>
-                        
-                        <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                          <div className="text-xs font-medium text-blue-700 mb-1">Total Runs</div>
-                          <div className="text-xl font-bold text-blue-900">
-                            {spot.dropRate > 0 ? Math.ceil((100 / spot.dropRate) * selectedMaterial.deficit) : '∞'}
+                        {/* Metrics Grid */}
+                        <div className="p-4">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+                              <div className="text-xs font-medium text-blue-700 mb-1">Drop Rate</div>
+                              <div className="text-xl font-bold text-blue-900">
+                                {spot.dropRate?.toFixed(1) || 0}%
+                              </div>
+                            </div>
+                            
+                            <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+                              <div className="text-xs font-medium text-blue-700 mb-1">AP per Drop</div>
+                              <div className="text-xl font-bold text-blue-900">
+                                {spot.apPerDrop?.toFixed(1) || 0}
+                              </div>
+                            </div>
+                            
+                            <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+                              <div className="text-xs font-medium text-blue-700 mb-1">Runs for 1</div>
+                              <div className="text-xl font-bold text-blue-900">
+                                {spot.dropRate > 0 ? Math.ceil(100 / spot.dropRate) : '∞'}
+                              </div>
+                            </div>
+                            
+                            <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+                              <div className="text-xs font-medium text-blue-700 mb-1">Total Runs</div>
+                              <div className="text-xl font-bold text-blue-900">
+                                {spot.dropRate > 0 ? Math.ceil((100 / spot.dropRate) * selectedMaterial.deficit) : '∞'}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
+                ) : searchStatus === 'complete' ? (
+                  <div className="text-center py-10">
+                    <div className="w-16 h-16 mx-auto mb-5 bg-blue-50 rounded-full flex items-center justify-center">
+                      <Icon name="Search" size={24} className="text-blue-500" />
+                    </div>
+                    <h4 className="text-lg font-semibold text-blue-900 mb-2">
+                      No Data Found
+                    </h4>
+                    <p className="text-blue-600">
+                      No farming data available for "{selectedMaterial.name}"
+                    </p>
+                  </div>
+                ) : null}
               </div>
-            ) : searchStatus === 'complete' ? (
-              <div className="text-center py-10">
-                <div className="w-16 h-16 mx-auto mb-5 bg-blue-50 rounded-full flex items-center justify-center">
-                  <Icon name="Search" size={24} className="text-blue-500" />
-                </div>
-                <h4 className="text-lg font-semibold text-blue-900 mb-2">
-                  No Data Found
-                </h4>
-                <p className="text-blue-600">
-                  No farming data available for "{selectedMaterial.name}"
-                </p>
-              </div>
-            ) : null}
-          </>
-        ) : (
-          /* No material selected - Initial State */
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Initial State - Only shown when no material is selected */}
+      {!selectedMaterial && (
+        <div className="p-6 border-t border-blue-100">
           <div className="text-center py-12">
             <div className="w-20 h-20 mx-auto mb-6 bg-blue-50 rounded-full flex items-center justify-center">
               <Icon name="Package" size={32} className="text-blue-500" />
@@ -544,8 +645,8 @@ const FarmingOptimizer = ({
                 : 'Materials will appear here once you have inventory deficit.'}
             </p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
