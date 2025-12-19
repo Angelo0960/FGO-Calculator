@@ -692,7 +692,7 @@ const ServantCalculator = () => {
   return (
     <div className="min-h-screen bg-background">
       <main>
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-2 py-8">
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-3">

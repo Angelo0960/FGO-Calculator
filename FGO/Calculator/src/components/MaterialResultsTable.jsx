@@ -85,9 +85,9 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
         <div className="p-6">
           <div className="flex flex-col items-center justify-center text-center p-8">
             <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4 border border-blue-200">
-              <Icon name="Package" size={24} className="text-blue-500" />
+              <Icon name="Package" size={25} className="text-blue-500" />
             </div>
-            <h3 className="text-lg font-semibold text-blue-900 mb-2">Material Requirements</h3>
+            <h3 className="text-lg font-bold text-blue-900 mb-2">Material Requirements</h3>
             <p className="text-blue-600 max-w-md">
               Select a servant and click "Calculate Requirements" to see material needs
             </p>
@@ -135,26 +135,23 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
       <div className="p-6 rounded-lg border-blue-100 bg-blue-700 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <div className="relative">
-            {/* Simple box frame */}
-            <div className="absolute -inset-[2px] bg-blue-100 rounded-xl 
-              shadow-sm
-              border-[2px] border-blue-300"></div>
+            
             
             {/* Simple recessed area */}
             <div className="absolute inset-0 bg-blue-700 rounded-lg 
               border border-blue-900/50"></div>
             
             {/* Simple icon container */}
-            <div className="relative p-2 rounded-md bg-blue-600">
-              <Icon name="Package" size={18} className="text-white" />
+            <div className="relative p-2 rounded-md bg-blue-50">
+              <Icon name="Package" size={25} className="text-blue-600" />
             </div>
           </div>
           <div>
-            <h2 className="text-xl font-bold uppercase tracking-[0.2em] text-blue-100">
+            <h2 className="text-xl sm:text-xl font-bold sm:font-black uppercase tracking-wide sm:tracking-[0.2em] text-blue-100">
               Material Requirements
             </h2>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-sm text-blue-300 font-medium">
+              <span className="text-sm text-blue-300 font-bold text-lg">
                 {mergedMaterials.length} materials needed
               </span>
             </div>

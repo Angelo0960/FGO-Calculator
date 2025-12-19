@@ -62,8 +62,8 @@ const LevelConfiguration = ({
     <div className="bg-white rounded-lg sm:rounded-xl border border-blue-100 shadow-sm sm:shadow-xl overflow-hidden transition-all duration-300">
       <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-blue-100 bg-blue-700 flex justify-between items-center">
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="p-1.5 sm:p-2 bg-blue-600 rounded-md sm:rounded-lg shadow-blue-200 shadow-md sm:shadow-lg">
-            <Icon name="TrendingUp" size={14} sm:size={18} className="text-white" />
+          <div className="p-1.5 sm:p-2 bg-blue-50 rounded-md sm:rounded-lg">
+            <Icon name="TrendingUp" size={25} sm:size={18} className="text-blue-600" />
           </div>
           <div>
             <h2 className="text-xl sm:text-xl font-bold sm:font-black uppercase tracking-wide sm:tracking-[0.2em] text-blue-100">

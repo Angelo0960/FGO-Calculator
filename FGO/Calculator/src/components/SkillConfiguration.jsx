@@ -11,8 +11,8 @@ const SkillConfiguration = ({ skillNames = [], skillIcons = [], skills, onSkillC
     <div className="bg-white rounded-lg sm:rounded-xl border border-blue-100 shadow-sm sm:shadow-xl overflow-hidden transition-all duration-300">
       <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-blue-100 bg-blue-700 flex justify-between items-center">
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="p-1.5 sm:p-2 bg-blue-600 rounded-md sm:rounded-lg shadow-blue-200 shadow-md sm:shadow-lg">
-            <Icon name="Sparkles" size={14} sm:size={18} className="text-white" />
+          <div className="p-1.5 sm:p-2 bg-blue-50 rounded-md sm:rounded-lg">
+            <Icon name="Sparkles" size={25} sm:size={18} className="text-blue-600" />
           </div>
           <div>
             <h2 className="text-xl sm:text-xl font-bold sm:font-black uppercase tracking-wide sm:tracking-[0.2em] text-blue-100">
@@ -20,11 +20,7 @@ const SkillConfiguration = ({ skillNames = [], skillIcons = [], skills, onSkillC
             </h2>
           </div>
         </div>
-        <div className="flex items-center gap-1 sm:gap-2 text-[8px] sm:text-[10px] font-medium sm:font-black text-blue-300">
-          <Icon name="Zap" size={10} sm:size={12} />
-          <span className="hidden sm:inline">{skillNames.length} SKILLS</span>
-          <span className="sm:hidden">{skillNames.length}</span>
-        </div>
+        
       </div>
 
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 bg-blue-50/30">
