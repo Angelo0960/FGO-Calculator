@@ -17,29 +17,42 @@ const MaterialResultsCards = ({ materials, onInventoryUpdate, onExport, hasCalcu
   };
 
   const getStatusBadge = (deficit) => {
-    if (deficit <= 0) return { text: 'Complete', bg: 'bg-green-100', color: 'text-green-700' };
-    if (deficit <= 10) return { text: 'Low Stock', bg: 'bg-amber-100', color: 'text-amber-700' };
-    return { text: 'Critical', bg: 'bg-red-100', color: 'text-red-700' };
+    if (deficit <= 0) return { text: 'Complete', bg: 'bg-green-100', border: 'border-green-200', color: 'text-green-700' };
+    if (deficit <= 10) return { text: 'Low Stock', bg: 'bg-amber-100', border: 'border-amber-200', color: 'text-amber-700' };
+    return { text: 'Critical', bg: 'bg-red-100', border: 'border-red-200', color: 'text-red-700' };
+  };
+
+  // Function to split long material names into multiple lines
+  const formatMaterialName = (name, maxWordsPerLine = 2) => {
+    if (!name) return '';
+    
+    const words = name.split(' ');
+    
+    if (words.length <= maxWordsPerLine) {
+      return name;
+    }
+    
+    // Split into chunks of maxWordsPerLine
+    const chunks = [];
+    for (let i = 0; i < words.length; i += maxWordsPerLine) {
+      chunks.push(words.slice(i, i + maxWordsPerLine).join(' '));
+    }
+    
+    return chunks.join('\n');
   };
 
   // Empty state
   if (!hasCalculated || !selectedServant) {
     return (
-      <div className="space-y-4">
-        <div className="bg-white rounded-xl border border-slate-200 shadow-lg p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center border border-blue-200">
+      <div className="bg-white rounded-xl border border-blue-100">
+        <div className="p-6">
+          <div className="flex flex-col items-center justify-center text-center p-8">
+            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4 border border-blue-200">
               <Icon name="Package" size={24} className="text-blue-500" />
             </div>
-            <div>
-              <h2 className="text-lg font-semibold text-slate-900">Material Requirements</h2>
-              <p className="text-sm text-slate-600">Select a servant and calculate to see requirements</p>
-            </div>
-          </div>
-          <div className="text-center py-6">
-            <Icon name="Calculator" size={48} className="text-blue-300 mx-auto mb-4" />
-            <p className="text-slate-500">
-              Configure your servant and click "Calculate Requirements" to see QP, Embers, and material needs.
+            <h3 className="text-lg font-semibold text-blue-900 mb-2">Material Requirements</h3>
+            <p className="text-blue-600 max-w-md">
+              Select a servant and click "Calculate Requirements" to see material needs
             </p>
           </div>
         </div>
@@ -49,20 +62,15 @@ const MaterialResultsCards = ({ materials, onInventoryUpdate, onExport, hasCalcu
 
   if (materials.length === 0) {
     return (
-      <div className="space-y-4">
-        <div className="bg-white rounded-xl border border-slate-200 shadow-lg p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center border border-green-200">
+      <div className="bg-white rounded-xl border border-blue-100">
+        <div className="p-6">
+          <div className="flex flex-col items-center justify-center text-center p-8">
+            <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-4 border border-green-200">
               <Icon name="CheckCircle" size={24} className="text-green-500" />
             </div>
-            <div>
-              <h2 className="text-lg font-semibold text-slate-900">All Requirements Met!</h2>
-              <p className="text-sm text-slate-600">No additional materials needed</p>
-            </div>
-          </div>
-          <div className="text-center py-4">
-            <p className="text-slate-500">
-              Your servant is already at the target levels, ascension, and skills.
+            <h3 className="text-lg font-semibold text-blue-900 mb-2">All Requirements Met!</h3>
+            <p className="text-blue-600 max-w-md">
+              Your servant is already at the target levels. No additional materials are needed.
             </p>
           </div>
         </div>
@@ -71,67 +79,92 @@ const MaterialResultsCards = ({ materials, onInventoryUpdate, onExport, hasCalcu
   }
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white rounded-xl border border-slate-200 shadow-lg p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center border border-blue-200">
-              <Icon name="Package" size={20} className="text-blue-500" />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white rounded-xl border border-blue-100">
+        <div className="px-6 py-4 border-b border-blue-100 bg-gradient-to-r from-blue-50 to-blue-50/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center">
+                <Icon name="Package" size={20} className="text-white" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-blue-900 tracking-tight">Material Requirements</h2>
+                <p className="text-sm text-blue-600 mt-1 font-medium">
+                  {materials.length} materials needed for {selectedServant?.name || 'selected servant'}
+                </p>
+              </div>
             </div>
-            <h1 className="text-2xl font-semibold text-blue-700">Materials ({materials.length})</h1>
           </div>
-          
         </div>
 
-        <div className="grid gap-3">
-          {materials?.map((material) => {
-            const status = getStatusBadge(material?.deficit);
-            
-            return (
-              <div 
-                key={material?.id} 
-                className="bg-slate-50 rounded-lg p-4 border border-slate-200 hover:border-blue-200 transition-colors"
-              >
-                <div className="flex items-start gap-3 mb-3">
-                  <div className="w-16 h-16 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 flex-shrink-0">
-                    <Image 
-                      src={material?.icon} 
-                      alt={material?.iconAlt}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <h3 className="text-lg pt-4 font-medium text-blue-900">{material?.name}</h3>
-                     
+        {/* Material Cards Grid */}
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {materials?.map((material) => {
+              const status = getStatusBadge(material?.deficit);
+              const formattedName = formatMaterialName(material?.name, 2); // Max 2 words per line
+              const hasMultipleLines = formattedName.includes('\n');
+              
+              return (
+                <div 
+                  key={material?.id} 
+                  className="bg-white rounded-lg p-4 border border-blue-200 hover:border-blue-300 transition-colors"
+                >
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="w-14 h-14 rounded-lg overflow-hidden bg-white border-2 border-blue-200 flex-shrink-0">
+                      <Image 
+                        src={material?.icon} 
+                        alt={material?.iconAlt}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                    
-                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <div className="flex-1 min-w-0">
+                          <div 
+                            className={`text-base font-semibold text-blue-900 ${
+                              hasMultipleLines 
+                                ? 'whitespace-pre-line leading-tight' 
+                                : 'truncate'
+                            }`}
+                            title={material?.name}
+                          >
+                            {hasMultipleLines ? formattedName : material?.name}
+                          </div>
+                        </div>
+                        
+                      </div>
+                      {/* Material type/rariity if available */}
+                      
+                    </div>
+                  </div>
+                  
+                  {/* Material Stats */}
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="text-center p-2 bg-blue-50 rounded border border-blue-100">
+                        <div className="text-xs font-medium text-blue-600 mb-1">Required</div>
+                        <div className="font-bold text-blue-900 text-lg">{material?.required?.toLocaleString()}</div>
+                      </div>
+                      <div className="text-center p-2 bg-blue-50 rounded border border-blue-100">
+                        <div className="text-xs font-medium text-blue-600 mb-1">Current</div>
+                        <div className="font-medium text-blue-700 text-lg">{material?.current?.toLocaleString()}</div>
+                      </div>
+                      <div className="text-center p-2 bg-blue-50 rounded border border-blue-100">
+                        <div className="text-xs font-medium text-blue-600 mb-1">Deficit</div>
+                        <div className={`font-bold text-lg ${getStatusColor(material?.deficit)}`}>
+                          {material?.deficit > 0 ? material?.deficit?.toLocaleString() : 0}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-3 mb-3">
-                  <div className="text-center">
-                    <p className="text-md text-slate-700 mb-1">Required</p>
-                    <p className="font-semibold text-slate-900">{material?.required?.toLocaleString()}</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-md text-slate-500 mb-1">Current</p>
-                    <p className="text-slate-600">{material?.current?.toLocaleString()}</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-md text-slate-500 mb-1">Deficit</p>
-                    <p className={`font-semibold ${getStatusColor(material?.deficit)}`}>
-                      {material?.deficit > 0 ? material?.deficit?.toLocaleString() : 0}
-                    </p>
-                  </div>
-                </div>
-                
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
-
     </div>
   );
 };

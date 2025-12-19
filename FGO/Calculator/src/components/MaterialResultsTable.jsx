@@ -81,14 +81,14 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
   // Empty state
   if (!hasCalculated || !selectedServant) {
     return (
-      <div className="bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden">
+      <div className="bg-white rounded-xl border border-blue-100">
         <div className="p-6">
           <div className="flex flex-col items-center justify-center text-center p-8">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4 border border-blue-200">
+            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4 border border-blue-200">
               <Icon name="Package" size={24} className="text-blue-500" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Material Requirements</h3>
-            <p className="text-slate-600 max-w-md">
+            <h3 className="text-lg font-semibold text-blue-900 mb-2">Material Requirements</h3>
+            <p className="text-blue-600 max-w-md">
               Select a servant and click "Calculate Requirements" to see material needs
             </p>
           </div>
@@ -99,12 +99,12 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden">
+      <div className="bg-white rounded-xl border border-blue-100">
         <div className="p-6">
           <div className="flex flex-col items-center justify-center text-center p-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Loading Materials</h3>
-            <p className="text-slate-600">Fetching data from Atlas Academy API...</p>
+            <h3 className="text-lg font-semibold text-blue-900 mb-2">Loading Materials</h3>
+            <p className="text-blue-600">Fetching data from Atlas Academy API...</p>
           </div>
         </div>
       </div>
@@ -113,14 +113,14 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
 
   if (mergedMaterials.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden">
+      <div className="bg-white rounded-xl border border-blue-100">
         <div className="p-6">
           <div className="flex flex-col items-center justify-center text-center p-8">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 border border-green-200">
+            <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-4 border border-green-200">
               <Icon name="CheckCircle" size={24} className="text-green-500" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">All Requirements Met!</h3>
-            <p className="text-slate-600 max-w-md">
+            <h3 className="text-lg font-semibold text-blue-900 mb-2">All Requirements Met!</h3>
+            <p className="text-blue-600 max-w-md">
               Your servant is already at the target levels. No additional materials are needed.
             </p>
           </div>
@@ -130,26 +130,26 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
   }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden">
+    <div className="bg-white rounded-xl border border-blue-100">
       {/* Header - Desktop */}
-      <div className="p-6 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-blue-100/50 hidden md:block">
+      <div className="p-6 border-b border-blue-100 bg-gradient-to-r from-blue-50 to-blue-50/50 hidden md:block">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Material Requirements</h2>
-            <div className="flex items-center gap-3 mt-1">
-              
-            
+            <h2 className="text-xl font-semibold text-blue-900 tracking-tight">Material Requirements</h2>
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-sm text-blue-600 font-medium">
+                {mergedMaterials.length} materials needed
+              </span>
             </div>
           </div>
-          
         </div>
       </div>
 
       {/* Header - Mobile */}
-      <div className="p-4 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-blue-100/50 md:hidden">
+      <div className="p-4 border-b border-blue-100 bg-gradient-to-r from-blue-50 to-blue-50/50 md:hidden">
         <div className="flex flex-col items-center text-center">
-          <h2 className="text-lg font-bold text-slate-900">Materials Needed</h2>
-          <p className="text-sm text-slate-600 mt-1">
+          <h2 className="text-lg font-semibold text-blue-900">Materials Needed</h2>
+          <p className="text-sm text-blue-600 mt-1 font-medium">
             {mergedMaterials.length} materials required
           </p>
         </div>
@@ -159,38 +159,37 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
       <div className="overflow-x-auto hidden md:block">
         <div className="min-w-full">
           {/* Table Header - Desktop */}
-          <div className="grid grid-cols-12 bg-slate-50 border-b border-slate-200">
-            <div className="col-span-5 p-4 text-lg font-semibold text-slate-900">Material</div>
-            <div className="col-span-2 p-4 text-lg font-semibold text-slate-900 text-center">Required</div>
-            <div className="col-span-2 p-4 text-lg font-semibold text-slate-900 text-center">Current</div>
-            <div className="col-span-3 p-4 text-lg font-semibold text-slate-900 text-center">Deficit</div>
+          <div className="grid grid-cols-12 bg-blue-50 border-b border-blue-100">
+            <div className="col-span-5 p-4 text-sm font-semibold text-blue-700 uppercase tracking-wide">Material</div>
+            <div className="col-span-2 p-4 text-sm font-semibold text-blue-700 uppercase tracking-wide text-center">Required</div>
+            <div className="col-span-2 p-4 text-sm font-semibold text-blue-700 uppercase tracking-wide text-center">Current</div>
+            <div className="col-span-3 p-4 text-sm font-semibold text-blue-700 uppercase tracking-wide text-center">Status</div>
           </div>
 
           {/* Table Body - Desktop */}
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-blue-50">
             {mergedMaterials.map((material) => (
               <div 
                 key={material.id} 
-                className="grid grid-cols-12 hover:bg-blue-50/30 transition-colors"
+                className="grid grid-cols-12 hover:bg-blue-50/50 transition-colors"
               >
                 {/* Material Info - Desktop */}
                 <div className="col-span-5 p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-white border border-blue-200 overflow-hidden flex-shrink-0">
                       <img 
                         src={material.icon} 
                         alt={material.iconAlt || material.name}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          e.target.src = "https://placehold.co/40x40/ccc/fff?text=?";
+                          e.target.src = "https://static.atlasacademy.io/NA/Items/99.png";
                         }}
                       />
                     </div>
                     <div className="min-w-0">
-                      <p className="font-medium text-slate-900 truncate">{material.name}</p>
+                      <p className="font-medium text-blue-900 truncate">{material.name}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-slate-500">{material.rarity}</span>
-                        
+                        <span className="text-xs text-blue-600 font-medium">{material.rarity}</span>
                       </div>
                     </div>
                   </div>
@@ -198,15 +197,15 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
 
                 {/* Required - Desktop */}
                 <div className="col-span-2 p-4 flex items-center justify-center">
-                  <span className="font-semibold text-slate-900">{material.required.toLocaleString()}</span>
+                  <span className="font-semibold text-blue-900">{material.required.toLocaleString()}</span>
                 </div>
 
                 {/* Current - Desktop */}
                 <div className="col-span-2 p-4 flex items-center justify-center">
-                  <span className="text-slate-600">{material.current.toLocaleString()}</span>
+                  <span className="text-blue-600">{material.current.toLocaleString()}</span>
                 </div>
 
-                {/* Deficit with Status - Desktop */}
+                {/* Status - Desktop */}
                 <div className="col-span-3 p-4 flex items-center justify-center">
                   <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border ${getStatusBgColor(material.deficit)}`}>
                     <Icon 
@@ -214,8 +213,8 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
                       size={14} 
                       className={getStatusColor(material.deficit)}
                     />
-                    <span className={`font-medium ${getStatusColor(material.deficit)}`}>
-                      {material.deficit > 0 ? material.deficit.toLocaleString() : 0}
+                    <span className={`font-medium text-sm ${getStatusColor(material.deficit)}`}>
+                      {material.deficit > 0 ? `${material.deficit.toLocaleString()} needed` : 'Complete'}
                     </span>
                   </div>
                 </div>
@@ -227,26 +226,26 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
 
       {/* Mobile Cards View */}
       <div className="md:hidden">
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-blue-50">
           {mergedMaterials.map((material) => (
-            <div key={material.id} className="p-4 hover:bg-blue-50/30 transition-colors">
-              <div className="flex items-start justify-between gap-4">
+            <div key={material.id} className="p-4 hover:bg-blue-50/50 transition-colors">
+              <div className="flex items-start justify-between gap-4 mb-3">
                 {/* Material Info - Mobile */}
                 <div className="flex items-start gap-3 flex-1">
-                  <div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">
+                  <div className="w-12 h-12 rounded-lg bg-white border border-blue-200 overflow-hidden flex-shrink-0">
                     <img 
                       src={material.icon} 
                       alt={material.iconAlt || material.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.src = "https://placehold.co/48x48/ccc/fff?text=?";
+                        e.target.src = "https://static.atlasacademy.io/NA/Items/99.png";
                       }}
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-900 truncate">{material.name}</p>
+                    <p className="font-medium text-blue-900 truncate">{material.name}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-slate-500">{material.rarity}</span>
+                      <span className="text-xs text-blue-600 font-medium">{material.rarity}</span>
                     </div>
                   </div>
                 </div>
@@ -258,21 +257,21 @@ const MaterialResultsTable = ({ materials, onInventoryUpdate, onExport, hasCalcu
                     size={14} 
                     className={getStatusColor(material.deficit)}
                   />
-                  <span className={`font-medium ${getStatusColor(material.deficit)}`}>
+                  <span className={`font-medium text-sm ${getStatusColor(material.deficit)}`}>
                     {material.deficit > 0 ? material.deficit.toLocaleString() : 0}
                   </span>
                 </div>
               </div>
 
               {/* Stats Row - Mobile */}
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <div className="text-center p-3 bg-slate-50 rounded-lg border border-slate-200">
-                  <div className="text-xs text-slate-500 mb-1">Required</div>
-                  <div className="font-semibold text-slate-900">{material.required.toLocaleString()}</div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="text-xs text-blue-600 font-medium mb-1">Required</div>
+                  <div className="font-semibold text-blue-900 text-lg">{material.required.toLocaleString()}</div>
                 </div>
-                <div className="text-center p-3 bg-slate-50 rounded-lg border border-slate-200">
-                  <div className="text-xs text-slate-500 mb-1">Current</div>
-                  <div className="font-medium text-slate-700">{material.current.toLocaleString()}</div>
+                <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="text-xs text-blue-600 font-medium mb-1">Current</div>
+                  <div className="font-medium text-blue-700 text-lg">{material.current.toLocaleString()}</div>
                 </div>
               </div>
             </div>
