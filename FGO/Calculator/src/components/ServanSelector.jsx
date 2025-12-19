@@ -63,12 +63,10 @@ const ServantSelector = ({ selectedServant, onServantChange }) => {
             <Icon name="User" size={14} sm:size={18} className="text-white" />
           </div>
           <div>
-            <h2 className="text-xs sm:text-xs font-bold sm:font-black uppercase tracking-wide sm:tracking-[0.2em] text-slate-800">
+            <h2 className="text-xl sm:text-xl font-bold sm:font-black uppercase tracking-wide sm:tracking-[0.2em] text-slate-800">
               Servant Profile
             </h2>
-            <p className="text-[8px] sm:text-[9px] text-slate-400 font-medium sm:font-bold uppercase">
-              Archive NA-2024
-            </p>
+            
           </div>
         </div>
         {loading && (
@@ -82,11 +80,9 @@ const ServantSelector = ({ selectedServant, onServantChange }) => {
 
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Search Field */}
-        <div className="space-y-1 sm:space-y-2">
+        <div className="space-y-1 sm:space-y-2 ">
           <div className="flex justify-between items-center px-1">
-            <label className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide sm:tracking-widest text-slate-400">
-              Search Database
-            </label>
+           
           </div>
           <Select
             placeholder={loading ? "Accessing Records..." : "Input Servant Name..."}
