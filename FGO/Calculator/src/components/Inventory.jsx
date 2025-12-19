@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Icon from './AppIcon';
 import Button from './Button';
 
@@ -25,6 +25,9 @@ const Inventory = ({
   const [activeMaterial, setActiveMaterial] = useState(null);
   const [editQuantity, setEditQuantity] = useState('');
   const [allMaterials, setAllMaterials] = useState([]); // Store all materials independently
+  const [pendingChanges, setPendingChanges] = useState({}); // Track pending changes to prevent race conditions
+  const [editingInputId, setEditingInputId] = useState(null); // Track which input is being edited
+  const [inputValues, setInputValues] = useState({}); // Store input values separately
 
   // Check for mobile view
   useEffect(() => {
@@ -170,12 +173,15 @@ const Inventory = ({
 
   // Handle manual inventory updates
   const handleInventoryChange = (materialId, value) => {
-    const numValue = parseInt(value) || 0;
-    const newInventory = {
-      ...inventory,
-      [materialId]: Math.max(0, numValue)
-    };
-    setInventory(newInventory);
+    // Clean and parse the value
+    const cleanedValue = value.toString().replace(/[^0-9]/g, '');
+    const numValue = Math.max(0, parseInt(cleanedValue) || 0);
+    
+    // Update inventory state
+    setInventory(prev => ({
+      ...prev,
+      [materialId]: numValue
+    }));
     
     // Update allMaterials state to reflect the change
     setAllMaterials(prev => 
@@ -183,7 +189,6 @@ const Inventory = ({
         if (mat.id === materialId || 
             (typeof mat.id === 'string' && mat.id.includes(materialId)) ||
             (typeof mat.originalId === 'string' && mat.originalId.includes(materialId))) {
-          const oldValue = mat.current || 0;
           return {
             ...mat,
             current: numValue,
@@ -206,8 +211,9 @@ const Inventory = ({
           return [m.id];
         });
       
-      // Update each original material
       const oldValue = inventory[materialId] || 0;
+      
+      // Update each original material
       originalIds.forEach(originalId => {
         onMaterialUpdate(originalId, numValue - oldValue);
       });
@@ -251,7 +257,7 @@ const Inventory = ({
   // Save edit changes (for mobile)
   const handleSaveEdit = () => {
     if (activeMaterial) {
-      const newValue = parseInt(editQuantity) || 0;
+      const newValue = parseInt(editQuantity.replace(/[^0-9]/g, '')) || 0;
       handleInventoryChange(activeMaterial.id, newValue);
       setActiveMaterial(null);
       setEditQuantity('');
@@ -462,7 +468,16 @@ const Inventory = ({
   ];
 
   // Material Card Component (used for both mobile and desktop)
-  const MaterialCard = ({ material }) => {
+  const MaterialCard = React.memo(({ material }) => {
+    // Local state for input value to prevent re-renders
+    const [localValue, setLocalValue] = useState(String(inventory[material.id] || 0));
+    const inputRef = useRef(null);
+
+    // Update local value when inventory changes
+    useEffect(() => {
+      setLocalValue(String(inventory[material.id] || 0));
+    }, [inventory, material.id]);
+
     const handleEditClick = () => {
       handleEditMaterial(material);
     };
@@ -492,9 +507,36 @@ const Inventory = ({
       handleQuickAction(material.id, 'set0');
     };
 
+    // Handle input change
+    const handleInputChange = (e) => {
+      const value = e.target.value;
+      // Allow empty string and numeric input
+      if (value === '' || /^\d+$/.test(value)) {
+        if (value.length <= 10) { // Limit to 10 digits
+          setLocalValue(value);
+        }
+      }
+    };
+
+    // Handle input blur - save the value
+    const handleInputBlur = () => {
+      const numValue = parseInt(localValue) || 0;
+      handleInventoryChange(material.id, numValue);
+    };
+
+    // Handle key press
+    const handleKeyDown = (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const numValue = parseInt(localValue) || 0;
+        handleInventoryChange(material.id, numValue);
+        inputRef.current?.blur();
+      }
+    };
+
     return (
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 hover:shadow-md transition-shadow">
-        <div className="flex items-start justify-between mb-3">
+        <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">
               <img 
@@ -507,56 +549,61 @@ const Inventory = ({
               />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-slate-900 truncate">{material.name}</h3>
-               
-                {!material.existsInCurrentMaterials && (
-                  <span className="text-xs bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded border border-slate-200">
-                    Saved
-                  </span>
-                )}
-              </div>
-              
-              <div className="mt-2 flex items-center gap-2">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-lg mt-2 font-semibold text-slate-900 truncate">{material.name}</h3>
+                   
+                    
+                  </div>
+                  
+                 
+                </div>
                 
-                
+                {/* Current quantity - aligned to the right */}
+                <div className="text-right ml-2 flex-shrink-0">
+                  <div className="text-sm">
+                    <div className="text-slate-600 text-xs">Current</div>
+                    <span className="font-semibold text-slate-900 text-lg">{(inventory[material.id] || 0).toLocaleString()}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
         
+        {/* Input and buttons section - responsive layout */}
         <div className="flex items-center justify-between">
-          <div className="text-sm">
-            <span className="text-slate-600">Current: </span>
-            <span className="font-semibold text-slate-900 text-lg">{(inventory[material.id] || 0).toLocaleString()}</span>
-          </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full justify-center">
             <button
               onClick={handleSubtract1}
-              className="w-8 h-8 rounded-lg border border-slate-300 hover:bg-slate-100 flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-lg border border-slate-300 hover:bg-slate-100 flex items-center justify-center transition-colors flex-shrink-0"
               aria-label="Subtract 1"
             >
               <Icon name="Minus" size={14} className="text-slate-600" />
             </button>
             <button
               onClick={handleSet0}
-              className="w-8 h-8 rounded-lg border border-slate-300 hover:bg-slate-100 flex items-center justify-center transition-colors text-xs font-medium"
+              className="w-8 h-8 rounded-lg border border-slate-300 hover:bg-slate-100 flex items-center justify-center transition-colors text-xs font-medium flex-shrink-0"
               aria-label="Set to 0"
             >
               0
             </button>
-            <div className="w-20">
+            <div className="w-20 flex-shrink-0">
               <input
-                type="number"
-                min="0"
-                value={inventory[material.id] || 0}
-                onChange={(e) => handleInventoryChange(material.id, e.target.value)}
+                ref={inputRef}
+                type="text"
+                inputMode="numeric"
+                value={localValue}
+                onChange={handleInputChange}
+                onBlur={handleInputBlur}
+                onKeyDown={handleKeyDown}
                 className="w-full px-2 py-1 text-center border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
             <button
               onClick={handleAdd1}
-              className="w-8 h-8 rounded-lg bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center border border-blue-600 transition-colors"
+              className="w-8 h-8 rounded-lg bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center border border-blue-600 transition-colors flex-shrink-0"
               aria-label="Add 1"
             >
               <Icon name="Plus" size={14} />
@@ -565,14 +612,14 @@ const Inventory = ({
               <>
                 <button
                   onClick={handleAdd10}
-                  className="w-8 h-8 rounded-lg bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center border border-blue-600 transition-colors text-xs font-medium"
+                  className="w-8 h-8 rounded-lg bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center border border-blue-600 transition-colors text-xs font-medium flex-shrink-0"
                   aria-label="Add 10"
                 >
                   +10
                 </button>
                 <button
                   onClick={handleAdd100}
-                  className="w-8 h-8 rounded-lg bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center border border-blue-600 transition-colors text-xs font-medium"
+                  className="w-8 h-8 rounded-lg bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center border border-blue-600 transition-colors text-xs font-medium flex-shrink-0"
                   aria-label="Add 100"
                 >
                   +100
@@ -582,7 +629,7 @@ const Inventory = ({
           </div>
         </div>
         
-        {/* Quick action buttons for mobile */}
+        {/* Quick action buttons for mobile - shown instead of inline +10/+100 buttons */}
         {isMobileView && (
           <div className="mt-3 flex gap-2">
             <button
@@ -601,153 +648,10 @@ const Inventory = ({
         )}
       </div>
     );
-  };
+  });
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-lg">
-      {/* Header */}
-      <div className="p-4 md:p-6 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-blue-100/50">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg md:text-xl font-bold text-slate-900">Material Inventory</h2>
-            <p className="text-xs md:text-sm text-slate-600 mt-1">
-              Your persistent material stock across all servants
-            </p>
-          </div>
-          {!isMobileView && (
-            <div className="flex items-center gap-2">
-            </div>
-          )}
-        </div>
-
-        {/* Mobile Header Actions */}
-        {isMobileView && (
-          <div className="grid grid-cols-3 gap-2 mb-4">
-            <Button
-              variant="outline"
-              iconName="Upload"
-              onClick={() => setShowImportModal(true)}
-              size="sm"
-              fullWidth
-              className="border-blue-300 text-blue-600 hover:bg-blue-50"
-            >
-              Import
-            </Button>
-            <Button
-              variant="outline"
-              iconName="Download"
-              onClick={() => setShowExportModal(true)}
-              size="sm"
-              fullWidth
-              className="border-blue-300 text-blue-600 hover:bg-blue-50"
-            >
-              Export
-            </Button>
-            <Button
-              variant="default"
-              iconName="Save"
-              onClick={handleSaveInventory}
-              size="sm"
-              fullWidth
-              className="bg-blue-500 hover:bg-blue-600 text-white border border-blue-600"
-            >
-              Save
-            </Button>
-          </div>
-        )}
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4">
-          <div className="bg-blue-50 p-3 md:p-4 rounded-lg border border-blue-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs md:text-sm text-blue-700 font-medium">Total Items</p>
-                <p className="text-lg md:text-2xl font-bold text-blue-900">{totals.totalItems}</p>
-              </div>
-              <Icon name="Package" size={20} className="text-blue-500" />
-            </div>
-          </div>
-          <div className="bg-green-50 p-3 md:p-4 rounded-lg border border-green-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs md:text-sm text-green-700 font-medium">Total Quantity</p>
-                <p className="text-lg md:text-2xl font-bold text-green-900">{totals.totalQuantity.toLocaleString()}</p>
-              </div>
-              <Icon name="Layers" size={20} className="text-green-500" />
-            </div>
-          </div>
-          <div className="bg-purple-50 p-3 md:p-4 rounded-lg border border-purple-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs md:text-sm text-purple-700 font-medium">Showing</p>
-                <p className="text-lg md:text-2xl font-bold text-purple-900">{filteredAndSortedMaterials.length}</p>
-              </div>
-              <Icon name="Filter" size={20} className="text-purple-500" />
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Filter Toggle */}
-        {isMobileView && (
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="w-full flex items-center justify-between p-3 mb-3 bg-slate-50 rounded-lg border border-slate-200 hover:bg-blue-50 hover:border-blue-200 transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <Icon name="Filter" size={18} className="text-blue-500" />
-              <span className="font-medium text-slate-900">Filters & Search</span>
-            </div>
-            <Icon name={showFilters ? "ChevronUp" : "ChevronDown"} size={18} className="text-blue-500" />
-          </button>
-        )}
-
-        {/* Filters and Search - Simplified */}
-        {(showFilters || !isMobileView) && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Search</label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search materials..."
-                  className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <Icon name="Search" size={16} className="absolute left-3 top-2.5 text-slate-400" />
-              </div>
-            </div>
-            
-            <div className="md:col-span-1">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Sort By</label>
-              <div className="flex gap-2">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="flex-1 px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  {sortOptions.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                  className="px-3 py-2 border border-slate-300 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
-                >
-                  <Icon 
-                    name={sortOrder === 'asc' ? "ArrowUp" : "ArrowDown"} 
-                    size={16} 
-                    className="text-blue-500" 
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* Materials Grid (Cards for both mobile and desktop) */}
       <div className="p-3 md:p-6">
         {filteredAndSortedMaterials.length === 0 ? (
@@ -837,10 +741,16 @@ const Inventory = ({
               <div className="mb-4">
                 <label className="block text-sm font-medium text-slate-700 mb-2">Quantity</label>
                 <input
-                  type="number"
-                  min="0"
+                  type="text"
+                  inputMode="numeric"
                   value={editQuantity}
-                  onChange={(e) => setEditQuantity(e.target.value)}
+                  onChange={(e) => {
+                    // Only allow numeric input
+                    const value = e.target.value.replace(/[^0-9]/g, '');
+                    if (value.length <= 10) { // Limit to 10 digits
+                      setEditQuantity(value);
+                    }
+                  }}
                   className="w-full px-3 py-3 border border-slate-300 rounded-lg text-center text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
