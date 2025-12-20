@@ -36,18 +36,18 @@ const LevelConfiguration = ({
     const handleClick = isTarget ? handleTargetAscensionClick : handleCurrentAscensionClick;
     
     return (
-      <div className="flex gap-1 sm:gap-2">
+      <div className="flex gap-1.5 justify-center">
         {[0, 1, 2, 3, 4].map((i) => (
           <button
             key={i}
             type="button"
             onClick={() => handleClick(i)}
-            className={`w-6 h-6 sm:w-7 sm:h-7 rotate-45 border-2 transition-all duration-200 flex items-center justify-center ${
+            className={`w-5 h-5 sm:w-6 sm:h-6 rotate-45 border-2 transition-all duration-200 flex items-center justify-center flex-shrink-0 ${
               i <= count 
                 ? `${
                     isTarget 
-                      ? 'bg-gradient-to-br from-blue-500 to-blue-600 border-blue-700 shadow-md hover:shadow-lg' 
-                      : 'bg-gradient-to-br from-blue-400 to-blue-500 border-blue-600 shadow-md hover:shadow-lg'
+                      ? 'bg-gradient-to-br from-blue-500 to-blue-600 border-blue-700 shadow-sm hover:shadow-md' 
+                      : 'bg-gradient-to-br from-blue-400 to-blue-500 border-blue-600 shadow-sm hover:shadow-md'
                   } transform hover:scale-110 active:scale-95` 
                 : 'bg-white border-blue-200 hover:border-blue-300 hover:bg-blue-50'
             } ${i === 0 ? 'invisible' : ''} cursor-pointer`}
@@ -130,36 +130,38 @@ const LevelConfiguration = ({
           </div>
         </div>
 
-        <div className="pt-4 sm:pt-6 border-t border-blue-100 space-y-4 sm:space-y-6">
-          <h3 className="text-lg sm:text-xl font-bold sm:font-black text-blue-900 tracking-tight">
+        <div className="pt-4 sm:pt-6 border-t border-blue-100">
+          <h3 className="text-lg sm:text-xl font-bold sm:font-black text-blue-900 tracking-tight mb-4 sm:mb-6">
             Ascension Rank
           </h3>
           
-          <div className="space-y-4 sm:space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="text-center flex-1 space-y-2">
-                <div className="flex justify-center">
-                  {renderPips(currentAscension, false)}
-                </div>
-                <div className="text-sm font-bold text-blue-700">
-                  Current: <span className="font-black">{currentAscension}/4</span>
-                </div>
+          {/* Ascension Container - Simplified layout */}
+          <div className="space-y-4 sm:space-y-4">
+            {/* Current Ascension */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-bold text-blue-700">Current</span>
+                <span className="text-sm font-black text-blue-700">{currentAscension}/4</span>
               </div>
-              
-              <div className="hidden md:block">
-                <Icon name="ArrowRight" size={20} className="text-blue-400" />
+              <div className="flex justify-center px-2">
+                {renderPips(currentAscension, false)}
               </div>
-              <div className="md:hidden">
-                <Icon name="ArrowDown" size={20} className="text-blue-400 mx-auto" />
+            </div>
+            
+            {/* Arrow Separator */}
+            <div className="flex justify-center">
+              <Icon name="ArrowDown" size={24} className="text-blue-400 md:hidden" />
+              <Icon name="ArrowRight" size={24} className="text-blue-400 hidden md:block" />
+            </div>
+            
+            {/* Target Ascension */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-bold text-blue-800">Target</span>
+                <span className="text-sm font-black text-blue-800">{targetAscension}/4</span>
               </div>
-              
-              <div className="text-center flex-1 space-y-2">
-                <div className="flex justify-center">
-                  {renderPips(targetAscension, true)}
-                </div>
-                <div className="text-sm font-bold text-blue-800">
-                  Target: <span className="font-black">{targetAscension}/4</span>
-                </div>
+              <div className="flex justify-center px-2">
+                {renderPips(targetAscension, true)}
               </div>
             </div>
           </div>

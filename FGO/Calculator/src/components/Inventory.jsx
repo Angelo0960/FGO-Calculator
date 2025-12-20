@@ -27,6 +27,7 @@ const Inventory = ({
   const [pendingChanges, setPendingChanges] = useState({});
   const [editingInputId, setEditingInputId] = useState(null);
   const [inputValues, setInputValues] = useState({});
+  const [sortBy, setSortBy] = useState('default');
 
   // Store the original order of material IDs as they were added
   const materialOrderRef = useRef([]);
@@ -536,7 +537,7 @@ const Inventory = ({
     };
   }, [mergedMaterials, inventory, materials]);
 
-  // Filter materials - MAINTAIN ORIGINAL ORDER, NO SORTING
+  // Filter and sort materials
   const filteredMaterials = useMemo(() => {
     // Get material IDs in their original order
     const orderedMaterialIds = materialOrderRef.current.filter(id => id in inventory);
@@ -552,7 +553,7 @@ const Inventory = ({
     if (orderedMaterialIds.length === 0) return [];
     
     // Create materials in their original order
-    const materialsList = orderedMaterialIds
+    let materialsList = orderedMaterialIds
       .map(materialId => {
         const material = getMaterialDetails(materialId);
         const baseId = getBaseMaterialId(materialId);
@@ -567,7 +568,7 @@ const Inventory = ({
           id: material.id || materialId, // Use the merged material's ID (base ID)
           baseId: baseId,
           name: material.name || `Material ${materialId}`,
-          rarity: material.rarity || 'Common',
+          
           category: material.category || 
                    (materialId.toString().includes('ember') ? 'Ember' : 
                     materialId === 'qp' ? 'Currency' : 
@@ -603,24 +604,47 @@ const Inventory = ({
         return true;
       });
     
-    // Return materials in their original order
+    // Apply sorting
+    if (sortBy !== 'default') {
+      materialsList.sort((a, b) => {
+        switch(sortBy) {
+          case 'name-asc':
+            return a.name.localeCompare(b.name);
+          case 'name-desc':
+            return b.name.localeCompare(a.name);
+          case 'current-high':
+            return (b.current || 0) - (a.current || 0);
+          case 'current-low':
+            return (a.current || 0) - (b.current || 0);
+          case 'deficit-high':
+            return (b.deficit || 0) - (a.deficit || 0);
+          case 'deficit-low':
+            return (a.deficit || 0) - (b.deficit || 0);
+          default:
+            return 0;
+        }
+      });
+    }
+    
     return materialsList;
-  }, [inventory, getMaterialDetails, materials, searchTerm, rarityFilter, categoryFilter, mergedMaterials]);
+  }, [inventory, getMaterialDetails, materials, searchTerm, rarityFilter, categoryFilter, mergedMaterials, sortBy]);
 
   // Calculate totals
   const totals = useMemo(() => {
     const totalItems = Object.keys(inventory).length;
     const totalQuantity = Object.values(inventory).reduce((sum, val) => sum + (val || 0), 0);
+    const totalRequired = filteredMaterials.reduce((sum, mat) => sum + (mat.required || 0), 0);
+    const totalDeficit = filteredMaterials.reduce((sum, mat) => sum + (mat.deficit || 0), 0);
     const categories = {};
     
     filteredMaterials.forEach(material => {
       categories[material.category] = (categories[material.category] || 0) + 1;
     });
     
-    return { totalItems, totalQuantity, categories };
+    return { totalItems, totalQuantity, totalRequired, totalDeficit, categories };
   }, [inventory, filteredMaterials]);
 
-  // Material Card Component (used for both mobile and desktop) - optimized for stable rendering
+  // Material Card Component - Enhanced Design
   const MaterialCard = React.memo(({ material }) => {
     // Get current value directly from inventory (stable reference)
     const currentValue = inventory[material.id] || 0;
@@ -644,10 +668,15 @@ const Inventory = ({
       if (prefixes.includes('material')) uses.push('Material');
       if (prefixes.includes('base')) uses.push('Base');
       
-      return uses.length > 0 ? `Used for: ${uses.join(', ')}` : null;
+     
     };
     
     const usageText = getUsageText();
+    
+    // Progress percentage for visual indicator
+    const progressPercentage = material.required > 0 
+      ? Math.min(100, (currentValue / material.required) * 100) 
+      : 100;
 
     // Update local value when inventory changes for this specific material
     useEffect(() => {
@@ -679,6 +708,11 @@ const Inventory = ({
       e?.stopPropagation();
       handleQuickAction(material.id, 'set0');
     }, [material.id, handleQuickAction]);
+
+    const handleSetRequired = useCallback((e) => {
+      e?.stopPropagation();
+      handleInventoryChange(material.id, material.required || 0);
+    }, [material.id, material.required, handleInventoryChange]);
 
     // Handle input change
     const handleInputChange = useCallback((e) => {
@@ -727,144 +761,179 @@ const Inventory = ({
     }, [material.id, editingInputId, handleInputBlur]);
 
     return (
-      <div className="bg-white rounded-lg border border-blue-100 shadow-sm p-4 hover:shadow-md transition-shadow hover:border-blue-200">
+      <div className="bg-gradient-to-br from-white to-blue-50 rounded-xl border-2 border-blue-100 shadow-lg p-4 hover:shadow-xl transition-all duration-300 hover:border-blue-300 hover:scale-[1.02]">
+        {/* Card Header with Material Info */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="w-12 h-12 rounded-lg bg-blue-50 border border-blue-100 overflow-hidden flex-shrink-0">
-              <img 
-                src={material.icon} 
-                alt={material.iconAlt}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.src = "https://placehold.co/48x48/3b82f6/fff?text=?";
-                }}
-              />
+            {/* Material Icon with Glow Effect */}
+            <div className="relative">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 overflow-hidden flex-shrink-0 shadow-md">
+                <img 
+                  src={material.icon} 
+                  alt={material.iconAlt}
+                  className="w-full h-full object-cover p-1"
+                  onError={(e) => {
+                    e.target.src = "https://placehold.co/56x56/3b82f6/fff?text=?";
+                  }}
+                />
+              </div>
+              
             </div>
+            
+            {/* Material Details */}
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-lg font-semibold text-slate-900 truncate">{material.name}</h3>
-                    {isMerged && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
-                        Merged
+                    <h3 className="text-lg font-bold text-slate-900 truncate">{material.name}</h3>
+                    {material.rarity && (
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                        material.rarity === 'Legendary' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
+                        material.rarity === 'Rare' ? 'bg-purple-100 text-purple-800 border border-purple-200' :
+                        'bg-blue-100 text-blue-800 border border-blue-200'
+                      }`}>
+                        {material.rarity}
                       </span>
                     )}
                   </div>
+                  
                   {usageText && (
-                    <p className="text-xs text-purple-600 mb-1">{usageText}</p>
+                    <p className="text-xs text-purple-600 font-medium mb-1 flex items-center gap-1">
+                      <Icon name="Activity" size={10} />
+                      {usageText}
+                    </p>
                   )}
-                  <div className="flex flex-wrap gap-1 items-center">
-                    <p className="text-sm text-blue-500">{material.category}</p>
-                    <span className="text-xs text-blue-400 bg-blue-50 px-1.5 py-0.5 rounded">
-                      ID: {material.id}
+                  
+                  <div className="flex flex-wrap gap-2 items-center">
+                    <span className="text-xs font-medium bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 px-2 py-1 rounded-lg border border-blue-200">
+                      {material.category}
                     </span>
                     {originalIds.length > 1 && (
-                      <span className="text-xs text-blue-400">
-                        ({originalIds.length} sources)
+                      <span className="text-xs text-blue-500 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
+                        {originalIds.length} sources
                       </span>
                     )}
                   </div>
                 </div>
                 
-                {/* Current quantity - aligned to the right */}
+                {/* Current quantity with visual indicator */}
                 <div className="text-right ml-2 flex-shrink-0">
                   <div className="text-sm">
-                    <div className="text-blue-400 text-xs">Current</div>
-                    <span className="font-semibold text-blue-600 text-lg">{currentValue.toLocaleString()}</span>
+                    <div className="text-blue-500 text-xs font-semibold uppercase tracking-wide">Current</div>
+                    <span className="font-bold text-blue-700 text-xl">{currentValue.toLocaleString()}</span>
                   </div>
+                  
                 </div>
               </div>
             </div>
           </div>
         </div>
         
-        {/* Input and buttons section - responsive layout */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 w-full justify-center">
-            <button
-              onClick={handleSubtract1}
-              className="w-8 h-8 rounded-md border border-blue-200 hover:bg-blue-50 flex items-center justify-center transition-colors flex-shrink-0"
-              aria-label="Subtract 1"
-            >
-              <Icon name="Minus" size={14} className="text-blue-500" />
-            </button>
-            <button
-              onClick={handleSet0}
-              className="w-8 h-8 rounded-md border border-blue-200 hover:bg-blue-50 flex items-center justify-center transition-colors text-xs font-medium flex-shrink-0 text-blue-500"
-              aria-label="Set to 0"
-            >
-              0
-            </button>
-            <div className="w-20 flex-shrink-0">
-              <input
-                ref={inputRef}
-                type="text"
-                inputMode="numeric"
-                value={localValue}
-                onChange={handleInputChange}
-                onBlur={handleInputBlurComplete}
-                onKeyDown={handleKeyDown}
-                onFocus={handleInputFocus}
-                className="w-full px-2 py-1 text-center border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 no-auto-scroll text-blue-600"
-              />
-            </div>
-            <button
-              onClick={handleAdd1}
-              className="w-8 h-8 rounded-md bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center border border-blue-600 transition-colors flex-shrink-0"
-              aria-label="Add 1"
-            >
-              <Icon name="Plus" size={14} />
-            </button>
-            {!isMobileView && (
-              <>
-                <button
-                  onClick={handleAdd10}
-                  className="w-8 h-8 rounded-md bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center border border-blue-600 transition-colors text-xs font-medium flex-shrink-0"
-                  aria-label="Add 10"
-                >
-                  +10
-                </button>
-                <button
-                  onClick={handleAdd100}
-                  className="w-8 h-8 rounded-md bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center border border-blue-600 transition-colors text-xs font-medium flex-shrink-0"
-                  aria-label="Add 100"
-                >
-                  +100
-                </button>
-              </>
-            )}
-          </div>
-        </div>
         
-        {/* Quick action buttons for mobile - shown instead of inline +10/+100 buttons */}
-        {isMobileView && (
-          <div className="mt-3 flex gap-2">
-            <button
-              onClick={handleAdd10}
-              className="flex-1 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-md text-sm font-medium transition-colors border border-blue-200"
-            >
-              +10
-            </button>
-            <button
-              onClick={handleAdd100}
-              className="flex-1 py-1.5 bg-blue-500 text-white hover:bg-blue-600 rounded-md text-sm font-medium transition-colors border border-blue-600"
-            >
-              +100
-            </button>
+        
+        {/* Quantity Control Section */}
+        <div className="bg-gradient-to-b from-blue-50 to-white rounded-lg p-3 border border-blue-100">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-semibold text-blue-600">Adjust Quantity</div>
+            <div className="flex gap-1">
+              
+              <button
+                onClick={handleSet0}
+                className="px-2 py-1 text-xs font-semibold bg-gradient-to-r from-red-500 to-red-600 text-white rounded-md hover:from-red-600 hover:to-red-700 transition-all duration-200 border border-red-700 shadow-sm"
+                aria-label="Set to 0"
+              >
+                Clear
+              </button>
+            </div>
           </div>
-        )}
+          
+          {/* Input and Quick Actions */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 w-full">
+              <button
+                onClick={handleSubtract1}
+                className="w-10 h-10 rounded-lg border-2 border-blue-200 hover:border-blue-300 hover:bg-blue-50 flex items-center justify-center transition-all duration-200 flex-shrink-0 shadow-sm"
+                aria-label="Subtract 1"
+              >
+                <Icon name="Minus" size={16} className="text-blue-600" />
+              </button>
+              
+              <div className="relative flex-1 max-w-40">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  inputMode="numeric"
+                  value={localValue}
+                  onChange={handleInputChange}
+                  onBlur={handleInputBlurComplete}
+                  onKeyDown={handleKeyDown}
+                  onFocus={handleInputFocus}
+                  className="w-full px-4 py-2 text-center border-2 border-blue-200 rounded-lg focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-300 no-auto-scroll text-blue-700 font-bold text-lg shadow-inner"
+                />
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-blue-400 font-medium">
+                  QTY
+                </div>
+              </div>
+              
+              <button
+                onClick={handleAdd1}
+                className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white flex items-center justify-center border-2 border-blue-700 transition-all duration-200 flex-shrink-0 shadow-md"
+                aria-label="Add 1"
+              >
+                <Icon name="Plus" size={16} />
+              </button>
+              
+              {!isMobileView && (
+                <>
+                  <button
+                    onClick={handleAdd10}
+                    className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white flex items-center justify-center border-2 border-blue-600 transition-all duration-200 text-sm font-bold flex-shrink-0 shadow-md"
+                    aria-label="Add 10"
+                  >
+                    +10
+                  </button>
+                  <button
+                    onClick={handleAdd100}
+                    className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white flex items-center justify-center border-2 border-blue-800 transition-all duration-200 text-sm font-bold flex-shrink-0 shadow-md"
+                    aria-label="Add 100"
+                  >
+                    +100
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+          
+          {/* Quick action buttons for mobile */}
+          {isMobileView && (
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button
+                onClick={handleAdd10}
+                className="py-2 bg-gradient-to-r from-blue-400 to-blue-500 text-white hover:from-blue-500 hover:to-blue-600 rounded-lg text-sm font-semibold transition-all duration-200 border border-blue-600 shadow-sm"
+              >
+                +10
+              </button>
+              <button
+                onClick={handleAdd100}
+                className="py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg text-sm font-semibold transition-all duration-200 border border-blue-800 shadow-sm"
+              >
+                +100
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     );
   }, (prevProps, nextProps) => {
     // Custom comparison function for React.memo
-    // Only re-render if the material object's properties change
     return prevProps.material.id === nextProps.material.id &&
            prevProps.material.name === nextProps.material.name &&
            prevProps.material.icon === nextProps.material.icon &&
            prevProps.material.rarity === nextProps.material.rarity &&
            prevProps.material.category === nextProps.material.category &&
-           prevProps.material.isMultiPurpose === nextProps.material.isMultiPurpose;
+           prevProps.material.isMultiPurpose === nextProps.material.isMultiPurpose &&
+           prevProps.material.required === nextProps.material.required &&
+           prevProps.material.deficit === nextProps.material.deficit;
   });
 
   return (
@@ -901,28 +970,87 @@ const Inventory = ({
         .inventory-container {
           overflow-anchor: none;
         }
+        
+        /* Custom scrollbar for inventory */
+        .inventory-scrollbar::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+        
+        .inventory-scrollbar::-webkit-scrollbar-track {
+          background: #f1f5f9;
+          border-radius: 4px;
+        }
+        
+        .inventory-scrollbar::-webkit-scrollbar-thumb {
+          background: #60a5fa;
+          border-radius: 4px;
+        }
+        
+        .inventory-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #3b82f6;
+        }
       `}</style>
       
       <div 
         id="inventory-section"
-        className="bg-white rounded-lg border border-blue-100 shadow-md inventory-container"
+        className="bg-gradient-to-br from-white to-blue-50 rounded-2xl border-2 border-blue-100 shadow-xl overflow-hidden inventory-container"
       >
-        {/* Materials Grid (Cards for both mobile and desktop) */}
-        <div className="p-3 md:p-6 bg-blue-50">
-          {filteredMaterials.length === 0 ? (
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center border border-blue-200">
-                <Icon name="Package" size={24} className="text-blue-500" />
+        {/* Inventory Header */}
+        <div className="px-6 py-4 border-b border-blue-100 bg-gradient-to-r from-blue-600 to-blue-700">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/20 backdrop-blur-sm rounded-xl">
+                <Icon name="Package" size={28} className="text-white" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">No Materials Found</h3>
-              <p className="text-blue-500">
+              <div>
+                <h2 className="text-2xl font-bold text-white">Material Inventory</h2>
+                <p className="text-blue-100 text-sm">Manage all your materials in one place</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-1.5">
+                <div className="text-xs text-blue-100 font-semibold">Total Items</div>
+                <div className="text-white font-bold">{totals.totalQuantity.toLocaleString()}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+       
+
+        
+
+        {/* Materials Grid */}
+        <div className="p-6 " >
+          {filteredMaterials.length === 0 ? (
+            <div className="py-12 text-center">
+              <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center border-2 border-blue-300 shadow-lg">
+                <Icon name="Package" size={40} className="text-blue-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-900 mb-3">No Materials Found</h3>
+              <p className="text-blue-500 text-lg max-w-md mx-auto">
                 {searchTerm 
-                  ? 'Try adjusting your search term'
-                  : 'Start by calculating material requirements for a servant'}
+                  ? 'No materials match your search. Try different keywords.'
+                  : 'Start by calculating material requirements for a servant to populate your inventory.'}
               </p>
+              <div className="mt-6 flex justify-center gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setRarityFilter('all');
+                    setCategoryFilter('all');
+                    setSortBy('default');
+                  }}
+                  className="border-2 border-blue-200 text-blue-600 hover:bg-blue-50"
+                >
+                  Clear Filters
+                </Button>
+              </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredMaterials.map((material) => (
                 <MaterialCard key={material.id} material={material} />
               ))}
@@ -930,14 +1058,14 @@ const Inventory = ({
           )}
         </div>
 
-        {/* Mobile Edit Modal */}
+        {/* Mobile Edit Modal - Enhanced Design */}
         {isMobileView && activeMaterial && (
-          <div className="fixed inset-0 bg-black/50 flex items-end justify-center p-4 z-50">
-            <div className="bg-white rounded-t-lg w-full max-w-md">
-              <div className="p-4 border-b border-blue-100">
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-end justify-center p-4 z-50">
+            <div className="bg-gradient-to-b from-white to-blue-50 rounded-t-2xl w-full max-w-md shadow-2xl">
+              <div className="p-6 border-b border-blue-200 bg-gradient-to-r from-blue-600 to-blue-700 rounded-t-2xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 overflow-hidden">
+                    <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 overflow-hidden">
                       <img 
                         src={activeMaterial.icon} 
                         alt={activeMaterial.iconAlt}
@@ -945,11 +1073,11 @@ const Inventory = ({
                       />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-slate-900">Edit {activeMaterial.name}</h3>
-                      <p className="text-xs text-blue-400">ID: {activeMaterial.id}</p>
+                      <h3 className="font-bold text-white text-lg">Edit {activeMaterial.name}</h3>
+                      <p className="text-blue-100 text-xs">ID: {activeMaterial.id}</p>
                       {activeMaterial.isMultiPurpose && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
-                          Merged from multiple sources
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white border border-white/30 mt-1">
+                          Merged Material
                         </span>
                       )}
                     </div>
@@ -959,15 +1087,15 @@ const Inventory = ({
                       setActiveMaterial(null);
                       setEditQuantity('');
                     }}
-                    className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                    className="p-2 hover:bg-white/20 rounded-xl transition-colors"
                   >
-                    <Icon name="X" size={20} className="text-blue-500" />
+                    <Icon name="X" size={24} className="text-white" />
                   </button>
                 </div>
               </div>
-              <div className="p-4">
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-blue-500 mb-2">Quantity</label>
+              <div className="p-6">
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-blue-600 mb-3 uppercase tracking-wide">Quantity</label>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -979,22 +1107,25 @@ const Inventory = ({
                         setEditQuantity(value);
                       }
                     }}
-                    className="w-full px-3 py-3 border border-blue-200 rounded-lg text-center text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 text-blue-600"
+                    className="w-full px-4 py-4 border-2 border-blue-200 rounded-xl text-center text-2xl font-bold focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-300 text-blue-700 shadow-inner"
                   />
+                  <div className="text-center text-xs text-blue-400 mt-2 font-medium">
+                    Current Required: {activeMaterial.required?.toLocaleString() || 0}
+                  </div>
                 </div>
-                <div className="grid grid-cols-4 gap-2 mb-4">
+                <div className="grid grid-cols-4 gap-3 mb-6">
                   <button
                     onClick={() => setEditQuantity('0')}
-                    className="py-2 bg-blue-50 hover:bg-blue-100 rounded-lg text-sm font-medium transition-colors text-blue-600 border border-blue-200"
+                    className="py-3 bg-gradient-to-b from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 rounded-xl text-sm font-bold transition-all duration-200 text-red-600 border-2 border-red-300 shadow-sm"
                   >
-                    Set 0
+                    Clear
                   </button>
                   <button
                     onClick={() => {
                       const current = parseInt(editQuantity) || 0;
                       setEditQuantity(String(current + 10));
                     }}
-                    className="py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg text-sm font-medium transition-colors border border-blue-200"
+                    className="py-3 bg-gradient-to-b from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white rounded-xl text-sm font-bold transition-all duration-200 border-2 border-blue-600 shadow-md"
                   >
                     +10
                   </button>
@@ -1003,7 +1134,7 @@ const Inventory = ({
                       const current = parseInt(editQuantity) || 0;
                       setEditQuantity(String(current + 100));
                     }}
-                    className="py-2 bg-blue-500 text-white hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors border border-blue-600"
+                    className="py-3 bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl text-sm font-bold transition-all duration-200 border-2 border-blue-800 shadow-md"
                   >
                     +100
                   </button>
@@ -1012,126 +1143,169 @@ const Inventory = ({
                       const current = parseInt(editQuantity) || 0;
                       setEditQuantity(String(Math.max(0, current - 1)));
                     }}
-                    className="py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-sm font-medium transition-colors border border-blue-200"
+                    className="py-3 bg-gradient-to-b from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-xl text-sm font-bold transition-all duration-200 text-blue-600 border-2 border-blue-300 shadow-sm"
                   >
                     -1
                   </button>
                 </div>
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
+                <div className="grid grid-cols-2 gap-3">
+                  <button
                     onClick={() => {
                       setActiveMaterial(null);
                       setEditQuantity('');
                     }}
-                    fullWidth
-                    className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                    className="py-3 bg-gradient-to-b from-white to-blue-50 hover:from-blue-50 hover:to-blue-100 rounded-xl text-sm font-bold transition-all duration-200 text-blue-600 border-2 border-blue-300 shadow-sm"
                   >
                     Cancel
-                  </Button>
-                  <Button
-                    variant="default"
+                  </button>
+                  <button
                     onClick={handleSaveEdit}
-                    fullWidth
-                    className="bg-blue-500 hover:bg-blue-600 text-white border border-blue-600"
+                    className="py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl text-sm font-bold transition-all duration-200 border-2 border-blue-700 shadow-md"
                   >
                     Save Changes
-                  </Button>
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Import Modal */}
+        {/* Import Modal - Enhanced Design */}
         {showImportModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-hidden">
-              <div className="p-4 md:p-6 border-b border-blue-100 bg-blue-50">
-                <h3 className="text-lg font-semibold text-slate-900">Import Inventory</h3>
-                <p className="text-sm text-blue-500 mt-1">
-                  Paste your inventory JSON data below
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-gradient-to-b from-white to-blue-50 rounded-2xl max-w-md w-full max-h-[90vh] overflow-hidden shadow-2xl">
+              <div className="p-6 border-b border-blue-200 bg-gradient-to-r from-blue-600 to-blue-700">
+                <h3 className="text-xl font-bold text-white">Import Inventory</h3>
+                <p className="text-blue-100 text-sm mt-1">
+                  Paste your inventory JSON data below to import
                 </p>
               </div>
-              <div className="p-4 md:p-6">
-                <textarea
-                  value={importData}
-                  onChange={(e) => setImportData(e.target.value)}
-                  placeholder='{"qp": 1000000, "ember-silver": 50, ...}'
-                  className="w-full h-32 md:h-48 px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 font-mono text-sm"
-                />
+              <div className="p-6">
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-blue-600 mb-2">JSON Data</label>
+                  <textarea
+                    value={importData}
+                    onChange={(e) => setImportData(e.target.value)}
+                    placeholder='{"qp": 1000000, "ascension-6501": 50, "skill-6501": 100, ...}'
+                    className="w-full h-48 px-4 py-3 border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-300 font-mono text-sm bg-white shadow-inner"
+                  />
+                </div>
                 {importError && (
-                  <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-blue-600 text-sm">{importError}</p>
+                  <div className="mb-4 p-4 bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-300 rounded-xl">
+                    <div className="flex items-center gap-2 text-red-600">
+                      <Icon name="AlertCircle" size={16} />
+                      <p className="text-sm font-semibold">{importError}</p>
+                    </div>
                   </div>
                 )}
+                <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-xl border-2 border-blue-200 mb-4">
+                  <p className="text-sm font-semibold text-blue-600 mb-2">Import Tips:</p>
+                  <ul className="text-xs text-blue-500 space-y-1">
+                    <li className="flex items-start gap-2">
+                      <Icon name="CheckCircle" size={12} className="text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Use the Export function to get the correct format</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Icon name="CheckCircle" size={12} className="text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Merged materials will be handled automatically</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Icon name="CheckCircle" size={12} className="text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Your current inventory will be updated, not replaced</span>
+                    </li>
+                  </ul>
+                </div>
               </div>
-              <div className="p-4 md:p-6 border-t border-blue-100 flex flex-col sm:flex-row justify-end gap-3">
-                <Button
-                  variant="outline"
+              <div className="p-6 border-t border-blue-200 flex flex-col sm:flex-row justify-end gap-3">
+                <button
                   onClick={() => {
                     setShowImportModal(false);
                     setImportData('');
                     setImportError('');
                   }}
-                  className="flex-1 sm:flex-none border-blue-200 text-blue-600 hover:bg-blue-50"
+                  className="px-6 py-3 bg-gradient-to-b from-white to-blue-50 hover:from-blue-50 hover:to-blue-100 rounded-xl text-sm font-semibold transition-all duration-200 text-blue-600 border-2 border-blue-300 shadow-sm"
                 >
                   Cancel
-                </Button>
-                <Button
-                  variant="default"
+                </button>
+                <button
                   onClick={handleImport}
                   disabled={!importData.trim()}
-                  className="flex-1 sm:flex-none bg-blue-500 hover:bg-blue-600 text-white border border-blue-600"
+                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-blue-300 disabled:to-blue-400 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-all duration-200 border-2 border-blue-700 shadow-md"
                 >
-                  Import
-                </Button>
+                  Import Inventory
+                </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Export Modal */}
+        {/* Export Modal - Enhanced Design */}
         {showExportModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-md w-full">
-              <div className="p-4 md:p-6 border-b border-blue-100 bg-blue-50">
-                <h3 className="text-lg font-semibold text-slate-900">Export Inventory</h3>
-                <p className="text-sm text-blue-500 mt-1">
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-gradient-to-b from-white to-blue-50 rounded-2xl max-w-md w-full shadow-2xl">
+              <div className="p-6 border-b border-blue-200 bg-gradient-to-r from-blue-600 to-blue-700">
+                <h3 className="text-xl font-bold text-white">Export Inventory</h3>
+                <p className="text-blue-100 text-sm mt-1">
                   Your inventory data will be downloaded as a JSON file
                 </p>
               </div>
-              <div className="p-4 md:p-6">
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                  <p className="text-sm text-blue-600 mb-2">Export Summary:</p>
-                  <div className="space-y-1 text-sm text-blue-500">
-                    <p>• {totals.totalItems} unique materials</p>
-                    <p>• {totals.totalQuantity.toLocaleString()} total items</p>
-                    <p>• {Object.keys(totals.categories).length} categories</p>
-                    <p className="text-blue-400">
-                      • Inventory persists across servant changes
-                    </p>
-                    <p className="text-blue-400">
-                      • Ascension and Skill materials with same ID are merged
-                    </p>
+              <div className="p-6">
+                <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-5 rounded-xl border-2 border-blue-200 mb-6">
+                  <p className="text-sm font-semibold text-blue-600 mb-3">Export Summary:</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-blue-500">Unique Materials</span>
+                      <span className="font-bold text-blue-700">{totals.totalItems}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-blue-500">Total Quantity</span>
+                      <span className="font-bold text-blue-700">{totals.totalQuantity.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-blue-500">Categories</span>
+                      <span className="font-bold text-blue-700">{Object.keys(totals.categories).length}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-blue-500">Total Deficit</span>
+                      <span className="font-bold text-red-600">{totals.totalDeficit.toLocaleString()}</span>
+                    </div>
+                    <div className="pt-3 mt-3 border-t border-blue-200">
+                      <p className="text-xs text-blue-400 italic">
+                        • Inventory persists across servant changes
+                      </p>
+                      <p className="text-xs text-blue-400 italic">
+                        • Ascension and Skill materials with same ID are merged
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-r from-green-50 to-emerald-100 p-4 rounded-xl border-2 border-emerald-200">
+                  <div className="flex items-center gap-3">
+                    <Icon name="CheckCircle" size={24} className="text-emerald-500" />
+                    <div>
+                      <p className="text-sm font-semibold text-emerald-700">Ready for Export</p>
+                      <p className="text-xs text-emerald-600">
+                        Your data is secure and will be downloaded locally
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="p-4 md:p-6 border-t border-blue-100 flex flex-col sm:flex-row justify-end gap-3">
-                <Button
-                  variant="outline"
+              <div className="p-6 border-t border-blue-200 flex flex-col sm:flex-row justify-end gap-3">
+                <button
                   onClick={() => setShowExportModal(false)}
-                  className="flex-1 sm:flex-none border-blue-200 text-blue-600 hover:bg-blue-50"
+                  className="px-6 py-3 bg-gradient-to-b from-white to-blue-50 hover:from-blue-50 hover:to-blue-100 rounded-xl text-sm font-semibold transition-all duration-200 text-blue-600 border-2 border-blue-300 shadow-sm"
                 >
                   Cancel
-                </Button>
-                <Button
-                  variant="default"
+                </button>
+                <button
                   onClick={handleExport}
-                  className="flex-1 sm:flex-none bg-blue-500 hover:bg-blue-600 text-white border border-blue-600"
+                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 border-2 border-blue-700 shadow-md"
                 >
+                  <Icon name="Download" size={16} className="mr-2 inline" />
                   Export Inventory
-                </Button>
+                </button>
               </div>
             </div>
           </div>

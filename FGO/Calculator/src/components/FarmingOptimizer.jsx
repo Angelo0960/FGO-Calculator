@@ -363,10 +363,10 @@ const FarmingOptimizer = ({
   // Loading state
   if (loading) {
     return (
-      <div className="bg-white rounded-xl border border-blue-100 p-8">
+      <div className="bg-gradient-to-br from-white to-blue-50 rounded-2xl border-2 border-blue-100 shadow-lg p-8">
         <div className="flex flex-col items-center justify-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-4"></div>
-          <h3 className="text-lg font-medium text-blue-900">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+          <h3 className="text-lg font-semibold text-blue-900">
             Loading Optimizer...
           </h3>
         </div>
@@ -375,34 +375,80 @@ const FarmingOptimizer = ({
   }
 
   return (
-    <div className="bg-white rounded-xl border border-blue-100">
+    <div className="bg-gradient-to-br from-white to-blue-50 rounded-2xl border-2 border-blue-100 shadow-xl overflow-hidden">
       {/* Header */}
-      <div className="p-6 border-b border-blue-100 bg-gradient-to-r from-blue-50 to-blue-50/50">
+      <div className="p-6 border-b border-blue-100 bg-gradient-to-r from-blue-600 to-blue-700">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold text-blue-900 tracking-tight">Farming Optimizer</h2>
-            <p className="text-blue-600 mt-2 font-medium">Select a material to find optimal farming spots</p>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white/20 backdrop-blur-sm rounded-xl">
+              <Icon name="Target" size={28} className="text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white tracking-tight">Farming Optimizer</h2>
+              <p className="text-blue-100 mt-2 font-medium">Select a material to find optimal farming spots</p>
+            </div>
+          </div>
+          <div className="hidden md:block">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-1.5">
+              <div className="text-xs text-blue-100 font-semibold">Materials Ready</div>
+              <div className="text-white font-bold">{materialsWithDeficit.length}</div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Materials Selection - Fixed width and height cards */}
+      {/* Stats Bar */}
+      <div className="px-6 py-3 bg-gradient-to-r from-blue-100 to-blue-50 border-b border-blue-200">
+        <div className="flex flex-wrap gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <span className="text-sm font-medium text-blue-700">
+              {materialsWithDeficit.length} materials with deficit
+            </span>
+          </div>
+          {selectedMaterial && (
+            <>
+              <div className="hidden sm:block w-px h-5 bg-blue-200"></div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-sm font-medium text-green-700">
+                  Selected: {selectedMaterial.name}
+                </span>
+              </div>
+              {totalAPNeeded > 0 && (
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-purple-700">
+                    Total AP needed: {totalAPNeeded.toLocaleString()}
+                  </span>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Materials Selection */}
       <div className="p-6">
         {materialsWithDeficit.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="w-16 h-16 mx-auto mb-4 bg-blue-50 rounded-full flex items-center justify-center">
-              <Icon name="Package" size={24} className="text-blue-500" />
+          <div className="text-center py-12">
+            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center border-2 border-blue-300 shadow-lg">
+              <Icon name="Package" size={32} className="text-blue-600" />
             </div>
-            <p className="text-blue-700 mb-4">No materials found with deficit.</p>
+            <h3 className="text-xl font-bold text-blue-900 mb-2">No Materials Found</h3>
+            <p className="text-blue-600 mb-6 max-w-md mx-auto">
+              There are no materials with deficits to optimize. Calculate servant requirements first.
+            </p>
             <Button
               variant="default"
-              className="bg-blue-500 hover:bg-blue-600 text-white border-0"
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-2 border-blue-700 shadow-md"
               onClick={() => handleSelectMaterial({ 
                 id: 'test-proof', 
                 name: 'Proof of Hero', 
                 deficit: 10 
               })}
             >
+              <Icon name="Target" size={16} className="mr-2" />
               Test with "Proof of Hero"
             </Button>
           </div>
@@ -420,27 +466,34 @@ const FarmingOptimizer = ({
                     <button
                       onClick={() => handleSelectMaterial(material)}
                       disabled={searchStatus === 'searching'}
-                      className={`p-4 rounded-lg border transition-all duration-200 w-full min-h-[96px] ${
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 w-full min-h-[108px] hover:scale-[1.02] hover:shadow-lg ${
                         isSelected
-                          ? 'border-blue-500 bg-blue-50 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.2)]'
-                          : 'border-blue-100 hover:border-blue-300 hover:bg-blue-50'
+                          ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.3),0_4px_12px_rgba(59,130,246,0.15)]'
+                          : 'border-blue-200 hover:border-blue-400 hover:bg-gradient-to-br from-blue-50 to-white'
                       } ${searchStatus === 'searching' ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <div className="flex flex-col w-full h-full">
-                        <div className="flex items-center gap-4 mb-2 w-full flex-1">
-                          <div className="w-12 h-12 rounded-lg bg-white border border-blue-200 overflow-hidden flex-shrink-0">
-                            <img 
-                              src={getItemImage(material)}
-                              alt={material.name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.target.src = 'https://static.atlasacademy.io/NA/Items/99.png';
-                              }}
-                            />
+                        <div className="flex items-center gap-4 mb-3 w-full flex-1">
+                          <div className="relative">
+                            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-white to-blue-100 border-2 border-blue-200 overflow-hidden flex-shrink-0 shadow-md">
+                              <img 
+                                src={getItemImage(material)}
+                                alt={material.name}
+                                className="w-full h-full object-cover p-1"
+                                onError={(e) => {
+                                  e.target.src = 'https://static.atlasacademy.io/NA/Items/99.png';
+                                }}
+                              />
+                            </div>
+                            {material.originalIds?.length > 1 && (
+                              <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-md border border-purple-300">
+                                <span className="text-xs font-bold text-white">{material.originalIds.length}</span>
+                              </div>
+                            )}
                           </div>
                           <div className="text-left flex-1 min-w-0 w-full">
                             <div 
-                              className={`font-medium text-blue-900 w-full ${
+                              className={`font-semibold text-blue-900 w-full ${
                                 hasMultipleLines 
                                   ? 'whitespace-pre-line leading-tight line-clamp-2' 
                                   : 'truncate'
@@ -449,30 +502,40 @@ const FarmingOptimizer = ({
                             >
                               {hasMultipleLines ? formattedName : material.name}
                             </div>
+                            {material.originalIds?.length > 1 && (
+                              <p className="text-xs text-purple-600 font-medium mt-1">
+                                Merged from {material.originalIds.length} sources
+                              </p>
+                            )}
                           </div>
                         </div>
                         
                         <div className="mt-auto w-full">
                           <div className="flex items-center justify-between w-full">
-                            <div className="flex items-baseline gap-1 min-w-0 flex-1 overflow-hidden">
-                              <span 
-                                className="font-bold text-blue-900 text-lg truncate min-w-0"
-                                title={`Need ${material.deficit?.toLocaleString() || '0'}`}
-                              >
-                                {formattedDeficit}
-                              </span>
-                              <span className="text-xs text-blue-600 flex-shrink-0">needed</span>
+                            <div className="flex items-baseline gap-2 min-w-0 flex-1 overflow-hidden">
+                              <div className="px-3 py-1.5 bg-gradient-to-r from-blue-100 to-blue-200 rounded-lg border border-blue-300 shadow-sm">
+                                <span 
+                                  className="font-bold text-blue-900 text-xl leading-none"
+                                  title={`Need ${material.deficit?.toLocaleString() || '0'}`}
+                                >
+                                  {formattedDeficit}
+                                </span>
+                              </div>
+                              <span className="text-xs text-blue-600 font-semibold flex-shrink-0">total needed</span>
                             </div>
-                            <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-                              {isSelected && (
-                                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse flex-shrink-0"></div>
+                            <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                              {isSelected ? (
+                                <>
+                                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse flex-shrink-0"></div>
+                                  <span className="text-xs text-green-600 font-semibold truncate flex-shrink-0">
+                                    Analyzing...
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="text-xs text-blue-500 font-semibold truncate flex-shrink-0 px-2 py-1 bg-gradient-to-r from-blue-50 to-blue-100 rounded-md border border-blue-200">
+                                  Click to analyze
+                                </span>
                               )}
-                             <span className="text-xs text-blue-500 font-medium truncate flex-shrink-0">
-  {material.originalIds?.length > 1 ? 
-    `See Farming Spots (${material.originalIds.length} sources)` : 
-    'See Farming Spots'
-  }
-</span>
                             </div>
                           </div>
                         </div>
@@ -484,43 +547,61 @@ const FarmingOptimizer = ({
                       <div className="mt-4">
                         {/* Search Status */}
                         {searchStatus === 'searching' ? (
-                          <div className="text-center py-6 bg-blue-50 rounded-lg border border-blue-200">
-                            <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-3"></div>
-                            <h4 className="text-lg font-medium text-blue-900 mb-2">
+                          <div className="text-center py-8 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-300 shadow-md">
+                            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+                            <h4 className="text-lg font-semibold text-blue-900 mb-2">
                               Finding Optimal Spots
                             </h4>
                             <p className="text-blue-600 text-sm">
-                              Analyzing farming data for {material.name}...
+                              Analyzing farming data for <span className="font-bold">{material.name}</span>...
                             </p>
+                            <div className="mt-4 text-xs text-blue-500">
+                              Searching through {localFarmingData.length} materials database
+                            </div>
                           </div>
                         ) : farmingSpots.length > 0 ? (
                           <div className="space-y-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <h4 className="font-semibold text-blue-900 text-lg">
-                                Optimal Farming Spots
-                              </h4>
-                              <div className="text-xs text-blue-600">
-                                {farmingSpots[0]?.runs?.toLocaleString() || 0} total samples
+                            <div className="flex items-center justify-between mb-4 p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+                              <div>
+                                <h4 className="font-bold text-blue-900 text-lg">
+                                  <Icon name="MapPin" size={18} className="inline mr-2" />
+                                  Optimal Farming Spots
+                                </h4>
+                                <p className="text-sm text-blue-600">
+                                  Based on {farmingSpots[0]?.runs?.toLocaleString() || 0} total samples
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-xs font-medium text-blue-500">Total AP Required</div>
+                                <div className="text-xl font-bold text-blue-700">
+                                  {totalAPNeeded.toLocaleString()} AP
+                                </div>
                               </div>
                             </div>
                             
                             {farmingSpots.map((spot, index) => (
-                              <div key={spot.id} className="bg-white rounded-lg border border-blue-200 overflow-hidden">
+                              <div key={spot.id} className="bg-white rounded-xl border-2 border-blue-200 overflow-hidden shadow-md hover:shadow-lg transition-shadow">
                                 {/* Spot Header */}
-                                <div className="p-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
-                                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
-                                    <div className="flex items-center gap-2">
-                                      <div className="px-2 py-1 bg-blue-600 text-white rounded-md text-xs font-semibold">
+                                <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
+                                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3">
+                                      <div className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-sm font-bold shadow-md">
                                         Rank #{spot.rank}
                                       </div>
                                       <div>
-                                        <h5 className="font-semibold text-blue-900 text-sm">{spot.area}</h5>
-                                        <p className="text-xs text-blue-700 truncate">{spot.quest}</p>
+                                        <h5 className="font-bold text-blue-900 text-base">{spot.area}</h5>
+                                        <p className="text-sm text-blue-700 truncate flex items-center gap-1">
+                                          <Icon name="Flag" size={12} />
+                                          {spot.quest}
+                                        </p>
                                       </div>
                                     </div>
                                     <div className="text-right">
-                                      <div className="text-xl font-bold text-blue-700">AP: {spot.apCost}</div>
-                                      <div className="text-xs text-blue-600 font-medium">
+                                      <div className="flex items-center gap-2">
+                                        <Icon name="Battery" size={18} className="text-blue-500" />
+                                        <div className="text-2xl font-bold text-blue-700">AP: {spot.apCost}</div>
+                                      </div>
+                                      <div className="text-xs text-blue-600 font-medium mt-1">
                                         {spot.runs?.toLocaleString() || 0} runs sampled
                                       </div>
                                     </div>
@@ -528,33 +609,57 @@ const FarmingOptimizer = ({
                                 </div>
                                 
                                 {/* Metrics Grid */}
-                                <div className="p-3">
-                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                    <div className="text-center p-2 bg-blue-50 rounded border border-blue-200">
-                                      <div className="text-xs font-medium text-blue-700 mb-1">Drop Rate</div>
-                                      <div className="text-lg font-bold text-blue-900">
+                                <div className="p-4">
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <div className="text-center p-3 bg-gradient-to-b from-blue-50 to-white rounded-lg border-2 border-blue-200 shadow-sm">
+                                      <div className="flex items-center justify-center gap-1 text-xs font-semibold text-blue-700 mb-2">
+                                        <Icon name="TrendingUp" size={12} />
+                                        Drop Rate
+                                      </div>
+                                      <div className="text-xl font-bold text-blue-900">
                                         {spot.dropRate?.toFixed(1) || 0}%
                                       </div>
+                                      <div className="text-xs text-blue-500 mt-1">
+                                        Chance per run
+                                      </div>
                                     </div>
                                     
-                                    <div className="text-center p-2 bg-blue-50 rounded border border-blue-200">
-                                      <div className="text-xs font-medium text-blue-700 mb-1">AP per Drop</div>
-                                      <div className="text-lg font-bold text-blue-900">
+                                    <div className="text-center p-3 bg-gradient-to-b from-green-50 to-white rounded-lg border-2 border-green-200 shadow-sm">
+                                      <div className="flex items-center justify-center gap-1 text-xs font-semibold text-green-700 mb-2">
+                                        <Icon name="Target" size={12} />
+                                        AP per Drop
+                                      </div>
+                                      <div className="text-xl font-bold text-green-900">
                                         {spot.apPerDrop?.toFixed(1) || 0}
                                       </div>
-                                    </div>
-                                    
-                                    <div className="text-center p-2 bg-blue-50 rounded border border-blue-200">
-                                      <div className="text-xs font-medium text-blue-700 mb-1">Runs for 1</div>
-                                      <div className="text-lg font-bold text-blue-900">
-                                        {spot.dropRate > 0 ? Math.ceil(100 / spot.dropRate) : '∞'}
+                                      <div className="text-xs text-green-500 mt-1">
+                                        Efficiency score
                                       </div>
                                     </div>
                                     
-                                    <div className="text-center p-2 bg-blue-50 rounded border border-blue-200">
-                                      <div className="text-xs font-medium text-blue-700 mb-1">Total Runs</div>
-                                      <div className="text-lg font-bold text-blue-900">
+                                    <div className="text-center p-3 bg-gradient-to-b from-orange-50 to-white rounded-lg border-2 border-orange-200 shadow-sm">
+                                      <div className="flex items-center justify-center gap-1 text-xs font-semibold text-orange-700 mb-2">
+                                        <Icon name="Repeat" size={12} />
+                                        Runs for 1
+                                      </div>
+                                      <div className="text-xl font-bold text-orange-900">
+                                        {spot.dropRate > 0 ? Math.ceil(100 / spot.dropRate) : '∞'}
+                                      </div>
+                                      <div className="text-xs text-orange-500 mt-1">
+                                        Expected attempts
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="text-center p-3 bg-gradient-to-b from-purple-50 to-white rounded-lg border-2 border-purple-200 shadow-sm">
+                                      <div className="flex items-center justify-center gap-1 text-xs font-semibold text-purple-700 mb-2">
+                                        <Icon name="Calculator" size={12} />
+                                        Total Runs
+                                      </div>
+                                      <div className="text-xl font-bold text-purple-900">
                                         {spot.dropRate > 0 ? Math.ceil((100 / spot.dropRate) * material.deficit) : '∞'}
+                                      </div>
+                                      <div className="text-xs text-purple-500 mt-1">
+                                        For {material.deficit} needed
                                       </div>
                                     </div>
                                   </div>
@@ -563,16 +668,22 @@ const FarmingOptimizer = ({
                             ))}
                           </div>
                         ) : searchStatus === 'complete' ? (
-                          <div className="text-center py-8 bg-blue-50 rounded-lg border border-blue-200">
-                            <div className="w-12 h-12 mx-auto mb-3 bg-blue-100 rounded-full flex items-center justify-center">
-                              <Icon name="Search" size={20} className="text-blue-500" />
+                          <div className="text-center py-10 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-300 shadow-md">
+                            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center border-2 border-blue-300">
+                              <Icon name="Search" size={24} className="text-blue-600" />
                             </div>
-                            <h4 className="text-base font-semibold text-blue-900 mb-1">
-                              No Data Found
+                            <h4 className="text-base font-bold text-blue-900 mb-2">
+                              No Farming Data Available
                             </h4>
-                            <p className="text-blue-600 text-sm">
-                              No farming data available for "{material.name}"
+                            <p className="text-blue-600 text-sm max-w-md mx-auto mb-4">
+                              Sorry, we couldn't find any farming data for "{material.name}" in our database.
                             </p>
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 rounded-lg border border-blue-200">
+                              <Icon name="Info" size={14} className="text-blue-500" />
+                              <span className="text-xs text-blue-600">
+                                Try checking the Material Encyclopedia
+                              </span>
+                            </div>
                           </div>
                         ) : null}
                       </div>
@@ -585,7 +696,22 @@ const FarmingOptimizer = ({
         )}
       </div>
 
-      
+      {/* Footer */}
+      <div className="px-6 py-4 border-t border-blue-100 bg-gradient-to-r from-blue-50 to-blue-100/50">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-sm text-blue-600">
+            <Icon name="Database" size={14} />
+            <span>Database: {localFarmingData.length} materials</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-blue-600">
+            <Icon name="Activity" size={14} />
+            <span>Status: {searchStatus === 'searching' ? 'Searching...' : 'Ready'}</span>
+          </div>
+          <div className="text-xs text-blue-500 font-medium">
+            Updated with real farming data from community
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
