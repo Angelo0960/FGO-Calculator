@@ -741,42 +741,42 @@ const ServantCalculator = () => {
   
   <button
     onClick={() => setActiveView('calculator')}
-    className={`flex-1 px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md sm:rounded-lg transition-all duration-200 relative z-10 min-w-0 ${
+    className={`flex-1 px-2 sm:px-4 py-2 text-lg sm:text-xl font-bold rounded-md sm:rounded-lg transition-all duration-200 relative z-10 min-w-0 ${
       activeView === 'calculator'
-        ? 'text-white font-semibold'
+        ? 'text-white font-semibold '
         : 'text-blue-700 hover:text-blue-900'
     }`}
   >
     <div className="flex items-center justify-center gap-1 sm:gap-2">
-      <Icon name="Calculator" size={14} sm:size={16} className={activeView === 'calculator' ? 'text-white' : 'text-blue-500'} />
+      <Icon name="Calculator" size={20} sm:size={16} className={activeView === 'calculator' ? 'text-white' : 'text-blue-500'} />
       <span className="truncate">Calculator</span>
     </div>
   </button>
   
   <button
     onClick={() => setActiveView('inventory')}
-    className={`flex-1 px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md sm:rounded-lg transition-all duration-200 relative z-10 min-w-0 ${
+    className={`flex-1 px-2 sm:px-4 py-2 text-lg sm:text-xl font-bold rounded-md sm:rounded-lg transition-all duration-200 relative z-10 min-w-0 ${
       activeView === 'inventory'
-        ? 'text-white font-semibold'
+        ? 'text-white font-bold'
         : 'text-blue-700 hover:text-blue-900'
     }`}
   >
     <div className="flex items-center justify-center gap-1 sm:gap-2">
-      <Icon name="Package" size={14} sm:size={16} className={activeView === 'inventory' ? 'text-white' : 'text-blue-500'} />
+      <Icon name="Package" size={20} sm:size={16} className={activeView === 'inventory' ? 'text-white' : 'text-blue-500'} />
       <span className="truncate">Inventory</span>
     </div>
   </button>
   
   <button
     onClick={() => setActiveView('farming')}
-    className={`flex-1 px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md sm:rounded-lg transition-all duration-200 relative z-10 min-w-0 ${
+    className={`flex-1 px-2 sm:px-4 py-2 text-lg sm:text-xl font-bold rounded-md sm:rounded-lg transition-all duration-200 relative z-10 min-w-0 ${
       activeView === 'farming'
         ? 'text-white font-semibold'
         : 'text-blue-700 hover:text-blue-900'
     }`}
   >
     <div className="flex items-center justify-center gap-1 sm:gap-2">
-      <Icon name="MapPin" size={14} sm:size={16} className={activeView === 'farming' ? 'text-white' : 'text-blue-500'} />
+      <Icon name="MapPin" size={20} sm:size={16} className={activeView === 'farming' ? 'text-white' : 'text-blue-500'} />
       <span className="truncate">Farming</span>
     </div>
   </button>

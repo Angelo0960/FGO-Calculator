@@ -1,5 +1,8 @@
+import SimpleFooter from "./components/Footer.jsx";
 import Header from "./components/Header.jsx"
 import ServantSelectorUI from "./components/ServantSelectionUI.jsx";
+import Footer from "./components/Footer.jsx";
+
 
 function App() {
   
@@ -8,6 +11,7 @@ function App() {
     <>
         <Header/>
         <ServantSelectorUI/>
+        <Footer/>
       
     </>
   )

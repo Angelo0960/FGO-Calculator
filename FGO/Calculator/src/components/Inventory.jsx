@@ -56,24 +56,18 @@ const Inventory = ({
   // Simple function to extract base material ID from prefixed IDs
   const getBaseMaterialId = (materialId) => {
     if (typeof materialId === 'string') {
-      // Handle different types of prefixed IDs
-      if (materialId.includes('-')) {
-        const parts = materialId.split('-');
-        
-        // For "material-ascension-6501" format, the last part is the real ID
-        if (parts.length >= 3 && !isNaN(parts[parts.length - 1])) {
-          return parts[parts.length - 1]; // Return just the numeric part at the end
+      // Remove all prefixes to get the base ID
+      // Examples: "ascension-6501" -> "6501", "skill-6501" -> "6501", "material-ascension-6501" -> "6501"
+      const parts = materialId.split('-');
+      
+      // Find the last numeric part
+      for (let i = parts.length - 1; i >= 0; i--) {
+        if (!isNaN(parts[i]) && parts[i] !== '') {
+          return parts[i]; // Return the numeric ID
         }
-        
-        // For "ascension-1", "skill-6501" format
-        if (parts.length === 2 && !isNaN(parts[1])) {
-          return parts[1]; // Return just the numeric part
-        }
-        
-        // For "qp" or other single-word IDs
-        return materialId;
       }
-      // For non-prefixed IDs, return as is
+      
+      // For non-numeric IDs like "qp", return as is
       return materialId;
     }
     return materialId.toString();
@@ -128,7 +122,7 @@ const Inventory = ({
               );
               
               if (materialsWithSameBaseId.length > 0) {
-                // Keep them separate - don't merge with different prefixed IDs
+                // For now, keep them separate - they'll be merged in mergedMaterials
                 materialMap.set(material.id, {
                   ...material,
                   baseId,
@@ -159,58 +153,85 @@ const Inventory = ({
     }
   }, [materials, inventory]);
 
-  // Merge duplicate materials from allMaterials
+  // Merge duplicate materials from allMaterials - NOW MERGES ASCENSION AND SKILL
   const mergedMaterials = useMemo(() => {
     if (!allMaterials || allMaterials.length === 0) return [];
     
     const materialMap = new Map();
     
     allMaterials.forEach(material => {
-      // Don't merge materials with different prefixed IDs
       const baseId = getBaseMaterialId(material.id);
-      const isPrefixedId = typeof material.id === 'string' && material.id.includes('-') && material.id !== baseId;
       
-      if (isPrefixedId) {
-        // Keep prefixed IDs separate - don't merge them with base IDs
-        materialMap.set(material.id, {
+      // Special handling for QP - keep it separate
+      if (baseId === 'qp' || material.id === 'qp') {
+        materialMap.set('qp', {
           ...material,
-          id: material.id, // Keep the original prefixed ID
-          originalIds: [material.id],
+          id: 'qp',
+          baseId: 'qp',
+          name: 'QP (Quantum Particles)',
+          category: 'Currency',
           required: material.required || 0,
-          current: inventory[material.id] !== undefined ? inventory[material.id] : material.current || 0,
+          current: inventory['qp'] !== undefined ? inventory['qp'] : material.current || 0,
           deficit: Math.max(0, (material.required || 0) - 
-            (inventory[material.id] !== undefined ? inventory[material.id] : material.current || 0))
+            (inventory['qp'] !== undefined ? inventory['qp'] : material.current || 0))
+        });
+        return;
+      }
+      
+      // Check if we already have a material with this base ID
+      if (materialMap.has(baseId)) {
+        const existing = materialMap.get(baseId);
+        
+        // Merge the materials
+        materialMap.set(baseId, {
+          // Prefer material with better data (has icon, proper name)
+          ...(material.icon && !existing.icon ? material : existing),
+          // Sum the required amounts from both ascension and skill
+          required: existing.required + (material.required || 0),
+          // Use the max current value (or sum if they have separate values)
+          current: Math.max(
+            inventory[existing.id] !== undefined ? inventory[existing.id] : existing.current || 0,
+            inventory[material.id] !== undefined ? inventory[material.id] : material.current || 0,
+            inventory[baseId] !== undefined ? inventory[baseId] : 0
+          ),
+          // Track all original IDs for reference
+          originalIds: [...(existing.originalIds || []), material.id],
+          // Keep track of prefixes for display
+          prefixes: [...(existing.prefixes || []), material.id.includes('-') ? material.id.split('-')[0] : 'base'].filter((v, i, a) => a.indexOf(v) === i),
+          // Store base ID
+          baseId: baseId,
+          // Recalculate deficit
+          deficit: Math.max(0, 
+            (existing.required + (material.required || 0)) - 
+            Math.max(
+              inventory[existing.id] !== undefined ? inventory[existing.id] : existing.current || 0,
+              inventory[material.id] !== undefined ? inventory[material.id] : material.current || 0,
+              inventory[baseId] !== undefined ? inventory[baseId] : 0
+            )
+          ),
+          // Track if this material is used for multiple purposes
+          isMultiPurpose: true
         });
       } else {
-        // Only merge truly duplicate materials (same exact ID or same base ID without prefixes)
-        if (materialMap.has(material.id)) {
-          const existing = materialMap.get(material.id);
-          materialMap.set(material.id, {
-            // Prefer material with better data
-            ...(material.icon && !existing.icon ? material : existing),
-            // Sum the required amounts
-            required: existing.required + (material.required || 0),
-            // Use current value from inventory if available
-            current: inventory[material.id] !== undefined ? inventory[material.id] : 
-                    existing.current || material.current || 0,
-            // Combine original IDs
-            originalIds: [...(existing.originalIds || []), ...(material.originalIds || [])],
-            baseId,
-            // Recalculate deficit
-            deficit: Math.max(0, (existing.required + (material.required || 0)) - 
-              (inventory[material.id] !== undefined ? inventory[material.id] : 
-               existing.current || material.current || 0))
-          });
-        } else {
-          materialMap.set(material.id, {
-            ...material,
-            id: material.id, // Use the original ID
-            required: material.required || 0,
-            current: inventory[material.id] !== undefined ? inventory[material.id] : material.current || 0,
-            deficit: Math.max(0, (material.required || 0) - 
-              (inventory[material.id] !== undefined ? inventory[material.id] : material.current || 0))
-          });
-        }
+        // First time seeing this base ID material
+        materialMap.set(baseId, {
+          ...material,
+          id: baseId, // Use base ID as the main ID
+          baseId: baseId,
+          // Store original IDs for reference
+          originalIds: [material.id],
+          // Track prefix
+          prefixes: [material.id.includes('-') ? material.id.split('-')[0] : 'base'],
+          required: material.required || 0,
+          current: inventory[baseId] !== undefined ? inventory[baseId] : 
+                  inventory[material.id] !== undefined ? inventory[material.id] : 
+                  material.current || 0,
+          deficit: Math.max(0, (material.required || 0) - 
+            (inventory[baseId] !== undefined ? inventory[baseId] : 
+             inventory[material.id] !== undefined ? inventory[material.id] : 
+             material.current || 0)),
+          isMultiPurpose: material.id.includes('-') // Will become true if another prefix is added later
+        });
       }
     });
     
@@ -256,29 +277,33 @@ const Inventory = ({
     const cleanedValue = value.toString().replace(/[^0-9]/g, '');
     const numValue = Math.max(0, parseInt(cleanedValue) || 0);
     
-    // Check if this is a prefixed ID
+    // Get base ID for the material
     const baseId = getBaseMaterialId(materialId);
-    const isPrefixed = materialId.includes('-') && materialId !== baseId;
     
-    // Update inventory state
-    setInventory(prev => ({
-      ...prev,
-      [materialId]: numValue
-    }));
+    // Check if this is a merged material (using base ID)
+    const isMergedMaterial = mergedMaterials.some(m => m.id === baseId && m.isMultiPurpose);
     
-    // Update allMaterials state to reflect the change
+    if (isMergedMaterial) {
+      // Update using base ID for merged materials
+      setInventory(prev => ({
+        ...prev,
+        [baseId]: numValue,
+        // Also update individual prefixed IDs if they exist
+        ...(materialId !== baseId && { [materialId]: numValue })
+      }));
+    } else {
+      // For non-merged materials (like QP), use the exact ID
+      setInventory(prev => ({
+        ...prev,
+        [materialId]: numValue
+      }));
+    }
+    
+    // Update allMaterials state
     setAllMaterials(prev => 
       prev.map(mat => {
-        // Check if this material matches the ID (either exact or base)
-        if (mat.id === materialId) {
-          return {
-            ...mat,
-            current: numValue,
-            deficit: Math.max(0, (mat.required || 0) - numValue)
-          };
-        }
-        // Only update by baseId if it's not a prefixed material
-        if (!isPrefixed && mat.baseId === materialId) {
+        const matBaseId = getBaseMaterialId(mat.id);
+        if (matBaseId === baseId) {
           return {
             ...mat,
             current: numValue,
@@ -291,26 +316,22 @@ const Inventory = ({
     
     // Notify parent component
     if (onMaterialUpdate) {
-      // Find all original material IDs that match this ID
-      const matchingMaterials = mergedMaterials.filter(m => 
-        m.id === materialId || (!isPrefixed && m.baseId === materialId)
-      );
-      
-      matchingMaterials.forEach(material => {
-        if (material.originalIds) {
-          const oldValue = inventory[materialId] || 0;
-          // Update each original ID
-          material.originalIds.forEach(originalId => {
-            // Only update if this original ID matches or is related to our materialId
-            if (originalId === materialId || getBaseMaterialId(originalId) === baseId) {
-              onMaterialUpdate(originalId, numValue - oldValue);
-            }
+      if (isMergedMaterial) {
+        // Find all original IDs for this base material
+        const baseMaterial = mergedMaterials.find(m => m.id === baseId);
+        if (baseMaterial && baseMaterial.originalIds) {
+          const oldBaseValue = inventory[baseId] || 0;
+          baseMaterial.originalIds.forEach(originalId => {
+            const oldIndividualValue = inventory[originalId] || 0;
+            onMaterialUpdate(originalId, numValue - oldIndividualValue);
           });
-        } else {
-          // Fallback: update the material itself
-          onMaterialUpdate(materialId, numValue - (inventory[materialId] || 0));
+          // Also update the base ID itself
+          onMaterialUpdate(baseId, numValue - oldBaseValue);
         }
-      });
+      } else {
+        const oldValue = inventory[materialId] || 0;
+        onMaterialUpdate(materialId, numValue - oldValue);
+      }
     }
   }, [inventory, mergedMaterials, onMaterialUpdate]);
 
@@ -482,18 +503,15 @@ const Inventory = ({
     
     // If not found exactly, try base ID match (but be careful with prefixed IDs)
     const baseId = getBaseMaterialId(materialId);
-    const isPrefixed = materialId.includes('-') && materialId !== baseId;
     
-    if (!isPrefixed) {
-      const baseMatch = mergedMaterials.find(m => m.baseId === materialId || m.id === materialId);
-      if (baseMatch) {
-        const currentQuantity = inventory[materialId] || 0;
-        return {
-          ...baseMatch,
-          current: currentQuantity,
-          deficit: Math.max(0, (baseMatch.required || 0) - currentQuantity)
-        };
-      }
+    const baseMatch = mergedMaterials.find(m => m.id === baseId);
+    if (baseMatch) {
+      const currentQuantity = inventory[materialId] || inventory[baseId] || 0;
+      return {
+        ...baseMatch,
+        current: currentQuantity,
+        deficit: Math.max(0, (baseMatch.required || 0) - currentQuantity)
+      };
     }
     
     // If not found in merged materials, look in original materials
@@ -538,29 +556,34 @@ const Inventory = ({
       .map(materialId => {
         const material = getMaterialDetails(materialId);
         const baseId = getBaseMaterialId(materialId);
+        
+        // Skip prefixed IDs since we now use base IDs
         const isPrefixed = materialId.includes('-') && materialId !== baseId;
+        if (isPrefixed && mergedMaterials.some(m => m.id === baseId)) {
+          return null; // Skip prefixed IDs when we have a merged base material
+        }
         
         return {
-          id: materialId, // Use the actual ID, not base ID
-          baseId: baseId, // Store base ID separately
+          id: material.id || materialId, // Use the merged material's ID (base ID)
+          baseId: baseId,
           name: material.name || `Material ${materialId}`,
           rarity: material.rarity || 'Common',
           category: material.category || 
                    (materialId.toString().includes('ember') ? 'Ember' : 
                     materialId === 'qp' ? 'Currency' : 
-                    materialId.toString().includes('ascension') ? 'Ascension' : 
-                    materialId.toString().includes('skill') ? 'Skill' : 
-                    materialId.toString().includes('material-') ? 'Material' : 'Material'),
+                    'Material'),
           icon: material.icon || `https://static.atlasacademy.io/NA/Items/${baseId}.png`,
           iconAlt: material.iconAlt || material.name,
           current: material.current || 0,
           required: material.required || 0,
           deficit: material.deficit || 0,
-          isMerged: (material.originalIds && material.originalIds.length > 1) || false,
+          isMultiPurpose: material.isMultiPurpose || false,
+          prefixes: material.prefixes || [],
+          originalIds: material.originalIds || [materialId],
           existsInCurrentMaterials: materials.some(m => m.id === materialId),
-          isPrefixed: isPrefixed
         };
       })
+      .filter(material => material !== null) // Remove null entries
       .filter(material => {
         // Apply search filter
         if (searchTerm && !material.name.toLowerCase().includes(searchTerm.toLowerCase())) {
@@ -582,7 +605,7 @@ const Inventory = ({
     
     // Return materials in their original order
     return materialsList;
-  }, [inventory, getMaterialDetails, materials, searchTerm, rarityFilter, categoryFilter]);
+  }, [inventory, getMaterialDetails, materials, searchTerm, rarityFilter, categoryFilter, mergedMaterials]);
 
   // Calculate totals
   const totals = useMemo(() => {
@@ -605,6 +628,26 @@ const Inventory = ({
     // Local state for input value to prevent re-renders
     const [localValue, setLocalValue] = useState(String(currentValue));
     const inputRef = useRef(null);
+
+    // Check if this material is merged from multiple sources
+    const isMerged = material.isMultiPurpose;
+    const prefixes = material.prefixes || [];
+    const originalIds = material.originalIds || [];
+    
+    // Show usage information if merged
+    const getUsageText = () => {
+      if (!isMerged) return null;
+      
+      const uses = [];
+      if (prefixes.includes('ascension')) uses.push('Ascension');
+      if (prefixes.includes('skill')) uses.push('Skill');
+      if (prefixes.includes('material')) uses.push('Material');
+      if (prefixes.includes('base')) uses.push('Base');
+      
+      return uses.length > 0 ? `Used for: ${uses.join(', ')}` : null;
+    };
+    
+    const usageText = getUsageText();
 
     // Update local value when inventory changes for this specific material
     useEffect(() => {
@@ -683,10 +726,6 @@ const Inventory = ({
       }
     }, [material.id, editingInputId, handleInputBlur]);
 
-    // Show merged indicator if this material is a combination of multiple sources
-    const isMerged = material.isMerged;
-    const isPrefixed = material.isPrefixed;
-
     return (
       <div className="bg-white rounded-lg border border-blue-100 shadow-sm p-4 hover:shadow-md transition-shadow hover:border-blue-200">
         <div className="flex items-start justify-between mb-4">
@@ -707,21 +746,22 @@ const Inventory = ({
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="text-lg font-semibold text-slate-900 truncate">{material.name}</h3>
                     {isMerged && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
                         Merged
                       </span>
                     )}
-                    {isPrefixed && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
-                        Prefixed
-                      </span>
-                    )}
                   </div>
+                  {usageText && (
+                    <p className="text-xs text-purple-600 mb-1">{usageText}</p>
+                  )}
                   <div className="flex flex-wrap gap-1 items-center">
                     <p className="text-sm text-blue-500">{material.category}</p>
-                    {isPrefixed && (
-                      <span className="text-xs text-blue-400 bg-blue-50 px-1.5 py-0.5 rounded">
-                        ID: {material.id}
+                    <span className="text-xs text-blue-400 bg-blue-50 px-1.5 py-0.5 rounded">
+                      ID: {material.id}
+                    </span>
+                    {originalIds.length > 1 && (
+                      <span className="text-xs text-blue-400">
+                        ({originalIds.length} sources)
                       </span>
                     )}
                   </div>
@@ -818,12 +858,13 @@ const Inventory = ({
     );
   }, (prevProps, nextProps) => {
     // Custom comparison function for React.memo
-    // Only re-render if the material object's properties (excluding current value) change
+    // Only re-render if the material object's properties change
     return prevProps.material.id === nextProps.material.id &&
            prevProps.material.name === nextProps.material.name &&
            prevProps.material.icon === nextProps.material.icon &&
            prevProps.material.rarity === nextProps.material.rarity &&
-           prevProps.material.category === nextProps.material.category;
+           prevProps.material.category === nextProps.material.category &&
+           prevProps.material.isMultiPurpose === nextProps.material.isMultiPurpose;
   });
 
   return (
@@ -906,8 +947,8 @@ const Inventory = ({
                     <div>
                       <h3 className="font-semibold text-slate-900">Edit {activeMaterial.name}</h3>
                       <p className="text-xs text-blue-400">ID: {activeMaterial.id}</p>
-                      {activeMaterial.isMerged && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                      {activeMaterial.isMultiPurpose && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
                           Merged from multiple sources
                         </span>
                       )}
@@ -1071,7 +1112,7 @@ const Inventory = ({
                       • Inventory persists across servant changes
                     </p>
                     <p className="text-blue-400">
-                      • Prefixed materials are kept separate from base materials
+                      • Ascension and Skill materials with same ID are merged
                     </p>
                   </div>
                 </div>
